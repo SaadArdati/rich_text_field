@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:rich_text_field/rich_regexes.dart';
-import 'package:rich_text_field/rich_text_editing_controller.dart';
+import 'package:rich_text_field/default_matchers.dart';
+import 'package:rich_text_field/rich_text_field.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late final RichTextEditingController _controller = RichTextEditingController(
-    text: '_tialics_ *bold* and _more_ *bolding*',
+    text: '_tialics_ *bold* and _more_ *bolding* ~strikeThrough~ awaw',
   )..addListener(() {
       SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         if (mounted) {
@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-                'Bold:\n\t${_controller.richMatches.whereType<BoldMatch>().map((boldMatch) => '[${boldMatch.content.text}]').join('\n\t')}'),
+                'Bold:\n\t${_controller.matches.values.expand((list) => list).whereType<BoldMatch>().map((boldMatch) => '[${boldMatch.content.text}]').join('\n\t')}'),
             Expanded(
               child: Center(
                 child: TextField(

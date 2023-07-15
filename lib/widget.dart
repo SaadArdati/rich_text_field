@@ -1,8 +1,9 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'dart:ui' as ui show BoxHeightStyle, BoxWidthStyle;
 
-import 'rich_text_editing_controller.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+
+import 'rich_text_controller.dart';
 
 class RichTextField extends TextField {
   const RichTextField({
