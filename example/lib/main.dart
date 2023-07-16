@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:rich_text_field/default_matchers.dart';
+import 'package:rich_text_field/default_regexes.dart';
 import 'package:rich_text_field/rich_text_field.dart';
 
 void main() {

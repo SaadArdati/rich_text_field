@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'default_matchers.dart';
+import 'default_regexes.dart';
+import 'matchers/bold_matcher.dart';
+import 'matchers/heading_matcher.dart';
+import 'matchers/italics_matcher.dart';
+import 'matchers/strike_through_matcher.dart';
 import 'matching.dart';
 import 'utils.dart';
 
@@ -32,6 +36,7 @@ class RichTextEditingController extends TextEditingController {
               boldMatcher,
               italicMatcher,
               strikeThroughMatcher,
+              headingMatcher,
             ];
 
   @override
@@ -65,10 +70,10 @@ class RichTextEditingController extends TextEditingController {
   }
 
   TextSpan getFormattedText(
-      BuildContext context, {
-        TextStyle? style,
-        bool rasterized = false,
-      }) {
+    BuildContext context, {
+    TextStyle? style,
+    bool rasterized = false,
+  }) {
     if (matchers.isEmpty) {
       // don't proceed further if no highlighters are provided.
       onAllMatchesFound({});
@@ -81,14 +86,14 @@ class RichTextEditingController extends TextEditingController {
     // Combines all the highlighter regex to create a single almighty regex.
     // List(start, end)
     final RegExp allRegex =
-    RegExp(matchers.map((item) => item.regex.pattern).join('|'));
+        RegExp(matchers.map((item) => item.regex.pattern).join('|'));
     text.splitMapJoinRegex(
       allRegex,
       onMatch: (RegExpMatch combinedMatch) {
         final String textPart = combinedMatch[0]!;
 
         final RichMatcher? matcher = matchers.firstWhereOrNull(
-              (matcher) => matcher.regex
+          (matcher) => matcher.regex
               .allMatches(text)
               .any((match) => match[0] == textPart),
         );
@@ -202,18 +207,6 @@ class RichTextEditingController extends TextEditingController {
     return _span!;
   }
 
-  @protected
-  List<InlineSpan> getHighlightingStyle<T extends RichMatch>(
-    BuildContext context, {
-    required RichMatcher<T> matcher,
-    required T match,
-    TextStyle? style,
-    bool rasterized = false,
-  }) =>
-      rasterized
-          ? matcher.rasterizedStyleBuilder.build(context, match, style)
-          : matcher.styleBuilder.build(context, match, style);
-
   /// Called when a match is found in [text] that matches one of the regexes.
   /// A highlighted [TextSpan] should be returned which will be displayed in
   /// the input field.
@@ -224,13 +217,9 @@ class RichTextEditingController extends TextEditingController {
     TextStyle? style,
     bool rasterized = false,
   }) =>
-      getHighlightingStyle(
-        context,
-        matcher: matcher,
-        match: match,
-        style: style,
-        rasterized: rasterized,
-      );
+      rasterized
+          ? matcher.rasterizedStyleBuilder.build(context, match, style)
+          : matcher.styleBuilder.build(context, match, style);
 
   /// Called for parts of [text] that does not match with any regexes.
   InlineSpan onNonMatch(String span, TextStyle? style) =>
