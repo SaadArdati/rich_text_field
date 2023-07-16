@@ -6,11 +6,11 @@ const String bold = r'''(\*)([^*\n]+)(\*)''';
 const String italic = r'''(_)([^_\n]+)(_)''';
 const String strikeThr = r'''(~)([^~\n]+)(~)''';
 const String heading = r'''(#+)([^\n]+)''';
-const String blockQuote = r'''^((?:> ?+)+)([^\n]+)''';
-const String bulletLine = r'''^( *[-+*]{1} +)(.+)''';
-const String numberLine = r'''^( *\d+\. +)(.+)''';
+const String blockQuote = r'''((?:> ?)+)([^\n]+)''';
+const String bulletLine = r'''( *[-+*]{1} +)(.+)''';
+const String numberLine = r'''( *\d+\. +)(.+)''';
 const String inlineCode = r'''(`)([^`\n]+)(`)''';
-const String codeBlock = r'''^(```)(\w*)(\n[^`]+)(```)$''';
+const String codeBlock = r'''(```)(\w*)(\n[^`]+)(```)''';
 
 final RegExp boldRegex = RegExp(bold);
 final RegExp italicRegex = RegExp(italic);
@@ -21,16 +21,3 @@ final RegExp bulletLineRegex = RegExp(bulletLine);
 final RegExp numberLineRegex = RegExp(numberLine);
 final RegExp inlineCodeRegex = RegExp(inlineCode);
 final RegExp codeBlockRegex = RegExp(codeBlock);
-
-class EncapsulatedMatch extends RichMatch {
-  final TextEditingValue openingChar;
-  final TextEditingValue closingChar;
-  final TextEditingValue content;
-
-  const EncapsulatedMatch(
-    super.match, {
-    required this.openingChar,
-    required this.closingChar,
-    required this.content,
-  });
-}

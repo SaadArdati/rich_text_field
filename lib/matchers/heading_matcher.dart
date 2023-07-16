@@ -16,64 +16,69 @@ class HeadingMatch extends RichMatch {
   });
 }
 
-final RichMatcher headingMatcher = RichMatcher<HeadingMatch>(
-  regex: headingRegex,
-  formatSelection: (TextEditingValue value, String selectedText) =>
-      value.copyWith(
-    text: value.text.replaceFirst(selectedText, '#$selectedText'),
-    selection: value.selection.copyWith(
-      baseOffset: value.selection.baseOffset + 1,
-      extentOffset: value.selection.extentOffset + 1,
-    ),
-  ),
-  styleBuilder: (context, match, style) {
-    final hashtagCount = min(6, match.hashtags.text.replaceAll(' ', '').length);
+class HeadingMatcher extends RichMatcher<HeadingMatch> {
+  HeadingMatcher()
+      : super(
+          regex: headingRegex,
+          formatSelection: (TextEditingValue value, String selectedText) =>
+              value.copyWith(
+            text: value.text.replaceFirst(selectedText, '# $selectedText'),
+            selection: value.selection.copyWith(
+              baseOffset: value.selection.baseOffset + 1,
+              extentOffset: value.selection.extentOffset + 1,
+            ),
+          ),
+          styleBuilder: (context, match, style) {
+            final hashtagCount =
+                min(6, match.hashtags.text.replaceAll(' ', '').length);
 
-    // font size should be inverse of hashtag count. maximum hashtags for
-    // smallest title is 6.
-    final fontSize = 16 + (6 - hashtagCount) * 2.0;
+            // font size should be inverse of hashtag count. maximum hashtags for
+            // smallest title is 6.
+            final fontSize = 16 + (6 - hashtagCount) * 2.0;
 
-    return [
-      TextSpan(
-        text: match.hashtags.text,
-        style: const TextStyle(color: Colors.grey),
-      ),
-      TextSpan(
-        text: match.content.text,
-        style: TextStyle(fontSize: fontSize),
-      ),
-    ];
-  },
-  rasterizedStyleBuilder: (context, match, style) {
-    final hashtagCount = min(6, match.hashtags.text.replaceAll(' ', '').length);
+            return [
+              TextSpan(
+                text: match.hashtags.text,
+                style: const TextStyle(color: Colors.grey),
+              ),
+              TextSpan(
+                text: match.content.text,
+                style: TextStyle(fontSize: fontSize),
+              ),
+            ];
+          },
+          rasterizedStyleBuilder: (context, match, style) {
+            final hashtagCount =
+                min(6, match.hashtags.text.replaceAll(' ', '').length);
 
-    // font size should be inverse of hashtag count. maximum hashtags for
-    // smallest title is 6.
-    final fontSize = 16 + (6 - hashtagCount) * 2.0;
-    return [
-      TextSpan(
-        text: match.content.text,
-        style: TextStyle(fontSize: fontSize),
-      ),
-    ];
-  },
-  matchBuilder: (RegExpMatch match) {
-    final hashtagsString = match.group(1)!;
-    final contentString = match.group(2)!;
+            // font size should be inverse of hashtag count. maximum hashtags for
+            // smallest title is 6.
+            final fontSize = 16 + (6 - hashtagCount) * 2.0;
+            return [
+              TextSpan(
+                text: match.content.text,
+                style: TextStyle(fontSize: fontSize),
+              ),
+            ];
+          },
+          matchBuilder: (RegExpMatch match) {
+            final hashtagsString = match.group(1)!;
+            final contentString = match.group(2)!;
 
-    final TextEditingValue hashtags = TextEditingValue(
-      text: hashtagsString,
-      selection: TextSelection.collapsed(
-        offset: match.start,
-      ),
-    );
-    final TextEditingValue content = TextEditingValue(
-      text: contentString,
-      selection: TextSelection.collapsed(
-        offset: match.start + match.end - 2,
-      ),
-    );
+            final TextEditingValue hashtags = TextEditingValue(
+              text: hashtagsString,
+              selection: TextSelection.collapsed(
+                offset: match.start,
+              ),
+            );
+            final TextEditingValue content = TextEditingValue(
+              text: contentString,
+              selection: TextSelection.collapsed(
+                offset: match.start + match.end - 2,
+              ),
+            );
 
-    return HeadingMatch(match, hashtags: hashtags, content: content);
-  },
-);
+            return HeadingMatch(match, hashtags: hashtags, content: content);
+          },
+        );
+}

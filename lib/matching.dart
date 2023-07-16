@@ -17,6 +17,34 @@ class RichMatch {
   const RichMatch(this.match);
 }
 
+/// A default implementation of a match that was made using an opening and
+/// closing text section, with content in between.
+class EncapsulatedMatch extends RichMatch {
+  final TextEditingValue opening;
+  final TextEditingValue closing;
+  final TextEditingValue content;
+
+  const EncapsulatedMatch(
+    super.match, {
+    required this.opening,
+    required this.closing,
+    required this.content,
+  });
+}
+
+/// A default implementation of a match that was made using an opening text
+/// section only, with content after it.
+class StartMatch extends RichMatch {
+  final TextEditingValue opening;
+  final TextEditingValue content;
+
+  const StartMatch(
+    super.match, {
+    required this.opening,
+    required this.content,
+  });
+}
+
 /// A typedef that allows conversion of a given [match] to any specific
 /// subtype of [RichMatch].
 typedef MatchBuilder<T extends RichMatch> = T Function(RegExpMatch match);
@@ -25,6 +53,46 @@ typedef MatchBuilder<T extends RichMatch> = T Function(RegExpMatch match);
 /// a [match]. No subtyping is done.
 T defaultMatchBuilder<T extends RichMatch>(RegExpMatch match) =>
     RichMatch(match) as T;
+
+typedef EncapsulatedMatchTypeConverter<T extends RichMatch> = T Function(
+    EncapsulatedMatch match);
+
+T defaultEncapsulatedMatchBuilder<T extends EncapsulatedMatch>(
+  RegExpMatch match,
+  EncapsulatedMatchTypeConverter<T> converter,
+) {
+  final openingChar = match.group(1)!;
+  final contentString = match.group(2)!;
+  final closingChar = match.group(3)!;
+
+  final opening = TextEditingValue(
+    text: openingChar,
+    selection: TextSelection.collapsed(
+      offset: match.start,
+    ),
+  );
+  final content = TextEditingValue(
+    text: contentString,
+    selection: TextSelection.collapsed(
+      offset: match.start + match.end - 2,
+    ),
+  );
+  final closing = TextEditingValue(
+    text: closingChar,
+    selection: TextSelection.collapsed(
+      offset: match.end - 1,
+    ),
+  );
+
+  final encapsulatedMatch = EncapsulatedMatch(
+    match,
+    opening: opening,
+    closing: closing,
+    content: content,
+  );
+
+  return converter.call(encapsulatedMatch);
+}
 
 /// A class that wraps a [StyleBuilder] function to convert a given [RichMatch]
 /// or any of its subtypes to a list of [TextSpan]s to format the match.

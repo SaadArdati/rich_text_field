@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'default_regexes.dart';
+import 'matchers/block_quote_matcher.dart';
 import 'matchers/bold_matcher.dart';
+import 'matchers/code_block_matcher.dart';
 import 'matchers/heading_matcher.dart';
 import 'matchers/italics_matcher.dart';
 import 'matchers/strike_through_matcher.dart';
@@ -15,7 +16,8 @@ bool _defaultShouldDebounceFormatting(String text) => text.length > 1000;
 /// [matchers] defines configuration for regexes and styles.
 class RichTextEditingController extends TextEditingController {
   final List<RichMatcher> matchers;
-  final bool Function(String text) shouldDebounceFormatting;
+
+  // final bool Function(String text) shouldDebounceFormatting;
 
   final Map<RichMatcher, List<RichMatch>> matches = {};
 
@@ -30,29 +32,31 @@ class RichTextEditingController extends TextEditingController {
   RichTextEditingController({
     super.text = '',
     List<RichMatcher>? matchers,
-    this.shouldDebounceFormatting = _defaultShouldDebounceFormatting,
+    // this.shouldDebounceFormatting = _defaultShouldDebounceFormatting,
   }) : matchers = matchers ??
             [
-              boldMatcher,
-              italicMatcher,
-              strikeThroughMatcher,
-              headingMatcher,
+              BoldMatcher(),
+              ItalicMatcher(),
+              StrikeThroughMatcher(),
+              HeadingMatcher(),
+              BlockQuoteMatcher(),
+              CodeBlockMatcher(),
             ];
 
   @override
   set value(TextEditingValue newValue) {
-    if (shouldDebounceFormatting(newValue.text)) {
-      if (_lastText != newValue.text) {
-        _span = null;
-        _lastText = newValue.text;
-        // _debouncer.run(() {
-        //   _span = format(style: _style);
-        //   if (hasListeners) {
-        //     notifyListeners();
-        //   }
-        // });
-      }
-    }
+    // if (shouldDebounceFormatting(newValue.text)) {
+    //   if (_lastText != newValue.text) {
+    //     _span = null;
+    //     _lastText = newValue.text;
+    //     // _debouncer.run(() {
+    //     //   _span = format(style: _style);
+    //     //   if (hasListeners) {
+    //     //     notifyListeners();
+    //     //   }
+    //     // });
+    //   }
+    // }
     super.value = newValue;
   }
 
@@ -189,9 +193,9 @@ class RichTextEditingController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    if (!shouldDebounceFormatting(text)) {
-      return _format(context, style: style);
-    }
+    // if (!shouldDebounceFormatting(text)) {
+    return _format(context, style: style);
+    // }
 
     if (style != _style) {
       _style = style ?? const TextStyle();
