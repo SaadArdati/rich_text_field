@@ -85,12 +85,53 @@ class RichTextField extends TextField {
 }
 
 class _RichTextFieldState extends State<RichTextField> {
+  late RichTextEditingController controller = widget.controller == null
+      ? RichTextEditingController()
+      : (widget.controller as RichTextEditingController);
+  late FocusNode focus = widget.focusNode ?? FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+
+    focus.addListener(onFocusChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant RichTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.controller != null &&
+        widget.controller != oldWidget.controller) {
+      controller = widget.controller as RichTextEditingController;
+    }
+    if (widget.focusNode != null && widget.focusNode != oldWidget.focusNode) {
+      focus = widget.focusNode!;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      controller.dispose();
+    }
+
+    focus.removeListener(onFocusChanged);
+    if (widget.focusNode == null) {
+      focus.dispose();
+    }
+    super.dispose();
+  }
+
+  void onFocusChanged() {
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextField(
       key: ValueKey('RichTextField-${widget.key}'),
-      controller: widget.controller,
-      focusNode: widget.focusNode,
+      controller: controller,
+      focusNode: focus,
       decoration: widget.decoration,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,

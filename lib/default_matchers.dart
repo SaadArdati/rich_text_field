@@ -18,6 +18,14 @@ final RegExp codeRegex = RegExp(code);
 
 final RichMatcher strikeThroughMatcher = RichMatcher<StrikeThroughMatch>(
   regex: strikeThrRegex,
+  formatSelection: (TextEditingValue value, String selectedText) =>
+      value.copyWith(
+    text: value.text.replaceFirst(selectedText, '~$selectedText~'),
+    selection: value.selection.copyWith(
+      baseOffset: value.selection.baseOffset + 1,
+      extentOffset: value.selection.extentOffset + 1,
+    ),
+  ),
   styleBuilder: (context, match, style) => [
     TextSpan(
       text: match.openingChar.text,
@@ -30,6 +38,12 @@ final RichMatcher strikeThroughMatcher = RichMatcher<StrikeThroughMatch>(
     TextSpan(
       text: match.closingChar.text,
       style: const TextStyle(color: Colors.grey),
+    ),
+  ],
+  rasterizedStyleBuilder: (context, match, style) => [
+    TextSpan(
+      text: match.content.text,
+      style: const TextStyle(decoration: TextDecoration.lineThrough),
     ),
   ],
   matchBuilder: (RegExpMatch match) {
@@ -66,6 +80,14 @@ final RichMatcher strikeThroughMatcher = RichMatcher<StrikeThroughMatch>(
 );
 final RichMatcher boldMatcher = RichMatcher<BoldMatch>(
   regex: boldRegex,
+  formatSelection: (TextEditingValue value, String selectedText) =>
+      value.copyWith(
+    text: value.text.replaceFirst(selectedText, '*$selectedText*'),
+    selection: value.selection.copyWith(
+      baseOffset: value.selection.baseOffset + 1,
+      extentOffset: value.selection.extentOffset + 1,
+    ),
+  ),
   styleBuilder: (context, match, style) => [
     TextSpan(
       text: match.openingChar.text,
@@ -78,6 +100,12 @@ final RichMatcher boldMatcher = RichMatcher<BoldMatch>(
     TextSpan(
       text: match.closingChar.text,
       style: const TextStyle(color: Colors.grey),
+    ),
+  ],
+  rasterizedStyleBuilder: (context, match, style) => [
+    TextSpan(
+      text: match.content.text,
+      style: const TextStyle(fontWeight: FontWeight.bold),
     ),
   ],
   matchBuilder: (RegExpMatch match) {
@@ -114,6 +142,14 @@ final RichMatcher boldMatcher = RichMatcher<BoldMatch>(
 );
 final RichMatcher italicMatcher = RichMatcher<ItalicMatch>(
   regex: italicRegex,
+  formatSelection: (TextEditingValue value, String selectedText) =>
+      value.copyWith(
+    text: value.text.replaceFirst(selectedText, '_${selectedText}_'),
+    selection: value.selection.copyWith(
+      baseOffset: value.selection.baseOffset + 1,
+      extentOffset: value.selection.extentOffset + 1,
+    ),
+  ),
   styleBuilder: (context, match, style) => [
     TextSpan(
       text: match.openingChar.text,
@@ -126,6 +162,12 @@ final RichMatcher italicMatcher = RichMatcher<ItalicMatch>(
     TextSpan(
       text: match.closingChar.text,
       style: const TextStyle(color: Colors.grey),
+    ),
+  ],
+  rasterizedStyleBuilder: (context, match, style) => [
+    TextSpan(
+      text: match.content.text,
+      style: const TextStyle(fontStyle: FontStyle.italic),
     ),
   ],
   matchBuilder: (RegExpMatch match) {
