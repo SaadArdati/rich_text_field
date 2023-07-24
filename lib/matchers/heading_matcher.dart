@@ -9,7 +9,7 @@ class HeadingMatch extends RichMatch {
   final TextEditingValue hashtags;
   final TextEditingValue content;
 
-  const HeadingMatch(
+  HeadingMatch(
     super.match, {
     required this.hashtags,
     required this.content,
@@ -20,50 +20,9 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
   HeadingMatcher()
       : super(
           regex: headingRegex,
-          formatSelection: (TextEditingValue value, String selectedText) =>
-              value.copyWith(
-            text: value.text.replaceFirst(selectedText, '# $selectedText'),
-            selection: value.selection.copyWith(
-              baseOffset: value.selection.baseOffset + 1,
-              extentOffset: value.selection.extentOffset + 1,
-            ),
-          ),
-          styleBuilder: (context, match, style) {
-            final hashtagCount =
-                min(6, match.hashtags.text.replaceAll(' ', '').length);
-
-            // font size should be inverse of hashtag count. maximum hashtags for
-            // smallest title is 6.
-            final fontSize = 16 + (6 - hashtagCount) * 2.0;
-
-            return [
-              TextSpan(
-                text: match.hashtags.text,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              TextSpan(
-                text: match.content.text,
-                style: TextStyle(fontSize: fontSize),
-              ),
-            ];
-          },
-          rasterizedStyleBuilder: (context, match, style) {
-            final hashtagCount =
-                min(6, match.hashtags.text.replaceAll(' ', '').length);
-
-            // font size should be inverse of hashtag count. maximum hashtags for
-            // smallest title is 6.
-            final fontSize = 16 + (6 - hashtagCount) * 2.0;
-            return [
-              TextSpan(
-                text: match.content.text,
-                style: TextStyle(fontSize: fontSize),
-              ),
-            ];
-          },
           matchBuilder: (RegExpMatch match) {
-            final hashtagsString = match.group(1)!;
-            final contentString = match.group(2)!;
+            final hashtagsString = match.namedGroup('headingHashtags')!;
+            final contentString = match.namedGroup('headingContent')!;
 
             final TextEditingValue hashtags = TextEditingValue(
               text: hashtagsString,
@@ -81,4 +40,50 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
             return HeadingMatch(match, hashtags: hashtags, content: content);
           },
         );
+
+  @override
+  bool canClaimMatch(String match) => match.startsWith('#');
+
+  @override
+  List<InlineSpan> rasterizedStyleBuilder(
+    BuildContext context,
+    HeadingMatch match,
+    RecurMatchBuilder recurMatch,
+  ) {
+    final hashtagCount = min(6, match.hashtags.text.replaceAll(' ', '').length);
+
+    // font size should be inverse of hashtag count. maximum hashtags for
+    // smallest title is 6.
+    final fontSize = 16 + (6 - hashtagCount) * 2.0;
+    return [
+      TextSpan(
+        text: match.content.text,
+        style: TextStyle(fontSize: fontSize),
+      ),
+    ];
+  }
+
+  @override
+  List<InlineSpan> styleBuilder(
+    BuildContext context,
+    HeadingMatch match,
+    RecurMatchBuilder recurMatch,
+  ) {
+    final hashtagCount = min(6, match.hashtags.text.replaceAll(' ', '').length);
+
+    // font size should be inverse of hashtag count. maximum hashtags for
+    // smallest title is 6.
+    final fontSize = 16 + (6 - hashtagCount) * 2.0;
+
+    return [
+      TextSpan(
+        text: match.hashtags.text,
+        style: const TextStyle(color: Colors.grey),
+      ),
+      TextSpan(
+        text: match.content.text,
+        style: TextStyle(fontSize: fontSize),
+      ),
+    ];
+  }
 }

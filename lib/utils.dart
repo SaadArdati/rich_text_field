@@ -1,3 +1,42 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
+
+extension TextSpanHelper on TextSpan {
+  TextSpan copyWith({
+    String? text,
+    List<TextSpan>? children,
+    TextStyle? style,
+    GestureRecognizer? recognizer,
+    MouseCursor? mouseCursor,
+    PointerEnterEventListener? onEnter,
+    PointerExitEventListener? onExit,
+    String? semanticsLabel,
+    Locale? locale,
+    bool? spellOut,
+  }) {
+    return TextSpan(
+      text: text ?? this.text,
+      children: children ?? this.children,
+      style: style ?? this.style,
+      recognizer: recognizer ?? this.recognizer,
+      mouseCursor: mouseCursor ?? this.mouseCursor,
+      onEnter: onEnter ?? this.onEnter,
+      onExit: onExit ?? this.onExit,
+      semanticsLabel: semanticsLabel ?? this.semanticsLabel,
+      locale: locale ?? this.locale,
+      spellOut: spellOut ?? this.spellOut,
+    );
+  }
+
+  TextSpan merge(TextSpan other) {
+    return TextSpan(
+      text: text,
+      style: style?.merge(other.style) ?? other.style,
+    );
+  }
+}
+
 extension StringExt on String {
   /// [String.splitMapJoin] is limited to [Pattern] which can only do [Match]
   /// and not [RegExpMatch]. Because of this, you can't access named groups
@@ -47,25 +86,4 @@ extension StringExt on String {
     );
     return result;
   }
-}
-
-/// Extensions that apply to all iterables.
-///
-/// These extensions provide direct access to some of the
-/// algorithms expose by this package,
-/// as well as some generally useful convenience methods.
-///
-/// More specialized extension methods that only apply to
-/// iterables with specific element types include those of
-/// [IterableComparableExtension] and [IterableNullableExtension].
-extension IterableExtension<T> on Iterable<T> {
-
-  /// The first element satisfying [test], or `null` if there are none.
-  T? firstWhereOrNull(bool Function(T element) test) {
-    for (var element in this) {
-      if (test(element)) return element;
-    }
-    return null;
-  }
-
 }

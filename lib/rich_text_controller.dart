@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:screwdriver/screwdriver.dart';
 
-import 'matchers/block_quote_matcher.dart';
-import 'matchers/bold_matcher.dart';
-import 'matchers/code_block_matcher.dart';
-import 'matchers/heading_matcher.dart';
-import 'matchers/italics_matcher.dart';
-import 'matchers/strike_through_matcher.dart';
+import 'matchers/matchers.dart';
+import 'matchers/mono_space_matcher.dart';
 import 'matching.dart';
-import 'utils.dart';
 
 bool _defaultShouldDebounceFormatting(String text) => text.length > 1000;
 
@@ -41,6 +37,7 @@ class RichTextEditingController extends TextEditingController {
               HeadingMatcher(),
               BlockQuoteMatcher(),
               CodeBlockMatcher(),
+              MonoSpaceMatcher(),
             ];
 
   @override
@@ -73,9 +70,10 @@ class RichTextEditingController extends TextEditingController {
     }
   }
 
-  TextSpan getFormattedText(
+  TextSpan getBetterFormattedText(
     BuildContext context, {
-    TextStyle? style,
+    required String text,
+    required TextStyle style,
     bool rasterized = false,
   }) {
     if (matchers.isEmpty) {
@@ -84,49 +82,47 @@ class RichTextEditingController extends TextEditingController {
       return TextSpan(text: text, style: style);
     }
 
-    final List<InlineSpan> children = [];
-    final Map<RichMatcher, List<RichMatch>> allMatches = {};
+    final String pattern =
+        matchers.map((matcher) => matcher.regex.pattern).join('|');
+    print('pattern: $pattern');
+    final RegExp regex = RegExp(pattern, multiLine: true);
 
-    // Combines all the highlighter regex to create a single almighty regex.
-    // List(start, end)
-    final RegExp allRegex =
-        RegExp(matchers.map((item) => item.regex.pattern).join('|'));
-    text.splitMapJoinRegex(
-      allRegex,
-      onMatch: (RegExpMatch combinedMatch) {
-        final String textPart = combinedMatch[0]!;
+    return matchText(context, text, regex, rasterized: rasterized);
+  }
 
-        final RichMatcher? matcher = matchers.firstWhereOrNull(
-          (matcher) => matcher.regex
-              .allMatches(text)
-              .any((match) => match[0] == textPart),
+  TextSpan matchText(
+    BuildContext context,
+    String text,
+    RegExp regex, {
+    required bool rasterized,
+  }) {
+    final List<InlineSpan> spans = text.splitMap<InlineSpan>(
+      regex,
+      onMatch: (match) {
+        final String text = match[0]!;
+        final RichMatcher matcher = matchers.firstWhere(
+          (entry) => entry.canClaimMatch(text),
         );
 
-        if (matcher == null) {
-          children.add(onNonMatch(textPart, style));
-          return '';
-        }
+        final RichMatch richMatch = matcher.matchBuilder(match);
 
-        final RegExpMatch subMatch = matcher.regex.firstMatch(textPart)!;
-        final RichMatch richMatch = matcher.matchBuilder(subMatch);
-        children.addAll(
-          onMatch(
+        return TextSpan(
+          children: onMatch(
             context,
             matcher: matcher,
             match: richMatch,
-            style: style,
             rasterized: rasterized,
+            recurMatch: (context, text) => [
+              matchText(context, text, regex, rasterized: rasterized),
+            ],
           ),
         );
-        allMatches.putIfAbsent(matcher, () => []).add(richMatch);
-        return '';
       },
-      onNonMatch: (span) {
-        children.add(onNonMatch(span, style));
-        return '';
+      onNonMatch: (nonMatch) {
+        return TextSpan(text: nonMatch);
       },
     );
-    return TextSpan(style: style, children: children);
+    return TextSpan(children: spans);
   }
 
   TextSpan _format(
@@ -140,51 +136,12 @@ class RichTextEditingController extends TextEditingController {
       return TextSpan(text: text, style: style);
     }
 
-    final List<InlineSpan> children = [];
-    final Map<RichMatcher, List<RichMatch>> allMatches = {};
-
-    // Combines all the highlighter regex to create a single almighty regex.
-    // List(start, end)
-    final RegExp allRegex =
-        RegExp(matchers.map((item) => item.regex.pattern).join('|'));
-    text.splitMapJoinRegex(
-      allRegex,
-      onMatch: (RegExpMatch combinedMatch) {
-        final String textPart = combinedMatch[0]!;
-
-        final RichMatcher? matcher = matchers.firstWhereOrNull(
-          (matcher) => matcher.regex
-              .allMatches(text)
-              .any((match) => match[0] == textPart),
-        );
-
-        if (matcher == null) {
-          children.add(onNonMatch(textPart, style));
-          return '';
-        }
-
-        final RegExpMatch subMatch = matcher.regex.firstMatch(textPart)!;
-        final RichMatch richMatch = matcher.matchBuilder(subMatch);
-        children.addAll(
-          onMatch(
-            context,
-            matcher: matcher,
-            match: richMatch,
-            style: style,
-            rasterized: rasterized,
-          ),
-        );
-        allMatches.putIfAbsent(matcher, () => []).add(richMatch);
-        return '';
-      },
-      onNonMatch: (span) {
-        children.add(onNonMatch(span, style));
-        return '';
-      },
+    return getBetterFormattedText(
+      context,
+      text: text,
+      style: style ?? const TextStyle(),
+      rasterized: rasterized,
     );
-    onAllMatchesFound(allMatches);
-
-    return TextSpan(style: style, children: children);
   }
 
   @override
@@ -197,18 +154,18 @@ class RichTextEditingController extends TextEditingController {
     return _format(context, style: style);
     // }
 
-    if (style != _style) {
-      _style = style ?? const TextStyle();
-      _span = _format(context, style: _style);
-    }
-    if (_span == null) {
-      return super.buildTextSpan(
-        context: context,
-        style: style,
-        withComposing: withComposing,
-      );
-    }
-    return _span!;
+    // if (style != _style) {
+    //   _style = style ?? const TextStyle();
+    //   _span = _format(context, style: _style);
+    // }
+    // if (_span == null) {
+    //   return super.buildTextSpan(
+    //     context: context,
+    //     style: style,
+    //     withComposing: withComposing,
+    //   );
+    // }
+    // return _span!;
   }
 
   /// Called when a match is found in [text] that matches one of the regexes.
@@ -218,16 +175,20 @@ class RichTextEditingController extends TextEditingController {
     BuildContext context, {
     required RichMatcher<T> matcher,
     required T match,
-    TextStyle? style,
+    required RecurMatchBuilder recurMatch,
     bool rasterized = false,
   }) =>
       rasterized
-          ? matcher.rasterizedStyleBuilder.build(context, match, style)
-          : matcher.styleBuilder.build(context, match, style);
+          ? matcher.rasterizedStyleBuilder(context, match, recurMatch)
+          : matcher.styleBuilder(context, match, recurMatch);
 
   /// Called for parts of [text] that does not match with any regexes.
-  InlineSpan onNonMatch(String span, TextStyle? style) =>
-      TextSpan(text: span, style: style);
+  RichSpan onNonMatch(String span, TextSelection selection, TextStyle? style) =>
+      RichSpan(
+          matcher: null,
+          selection: selection,
+          text: span,
+          style: style ?? const TextStyle());
 
   /// Called when all regex matching is done and all the matches have
   /// been collected.

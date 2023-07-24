@@ -1,23 +1,21 @@
-import 'package:flutter/material.dart';
 
-import 'matching.dart';
 
-const String bold = r'''(\*)([^*\n]+)(\*)''';
-const String italic = r'''(_)([^_\n]+)(_)''';
-const String strikeThr = r'''(~)([^~\n]+)(~)''';
-const String heading = r'''(#+)([^\n]+)''';
-const String blockQuote = r'''((?:> ?)+)([^\n]+)''';
-const String bulletLine = r'''( *[-+*]{1} +)(.+)''';
-const String numberLine = r'''( *\d+\. +)(.+)''';
-const String inlineCode = r'''(`)([^`\n]+)(`)''';
-const String codeBlock = r'''(```)(\w*)(\n[^`]+)(```)''';
+const String bold = r'''(?<boldOpening>\*)(?<boldContent>[^*\n]+)(?<boldClosing>\*)''';
+const String italic = r'''(?<italicsOpening>\*)(?<italicsContent>[^*\n]+)(?<italicsClosing>\*)''';
+const String strikeThrough = r'''(?<strikeThroughOpening>~)(?<strikeThroughContent>[^~\n]+)(?<strikeThroughClosing>~)''';
+const String heading = r'''^(?<headingHashtags>#+)(?<headingContent> [^\n]+)''';
+const String blockQuote = r'''(?<blockQuoteArrow>(?:> ?)+)(?<blockQuoteContent>[^\n]*)''';
+const String bulletLine = r'''^^(?<bulletLineBullet> *[-+*]{1} +)(?<bulletLineContent>.+)''';
+const String numberLine = r'''(?<numberLineNumber> *\d+[.-] +)(?<numberLineContent>.+)''';
+const String monoSpace = r'''(?<!`)(?<monoSpaceOpening>`)(?<monoSpaceContent>[^`\n]+)(?<monoSpaceClosing>`)(?!`)''';
+const String codeBlock = r'''(?<codeBlockOpening>``` *)(?<codeBlockLanguage>\w*\n)?(?<codeBlockContent>[^`]+)(?<codeBlockClosing>```)''';
 
 final RegExp boldRegex = RegExp(bold);
 final RegExp italicRegex = RegExp(italic);
-final RegExp strikeThroughRegex = RegExp(strikeThr);
+final RegExp strikeThroughRegex = RegExp(strikeThrough);
 final RegExp headingRegex = RegExp(heading);
 final RegExp blockQuoteRegex = RegExp(blockQuote);
 final RegExp bulletLineRegex = RegExp(bulletLine);
 final RegExp numberLineRegex = RegExp(numberLine);
-final RegExp inlineCodeRegex = RegExp(inlineCode);
+final RegExp monoSpaceRegex = RegExp(monoSpace);
 final RegExp codeBlockRegex = RegExp(codeBlock);

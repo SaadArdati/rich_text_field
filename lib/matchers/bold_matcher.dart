@@ -4,7 +4,7 @@ import '../default_regexes.dart';
 import '../matching.dart';
 
 class BoldMatch extends EncapsulatedMatch {
-  const BoldMatch(
+  BoldMatch(
     super.match, {
     required super.opening,
     required super.closing,
@@ -24,37 +24,48 @@ class BoldMatcher extends RichMatcher<BoldMatch> {
   BoldMatcher()
       : super(
           regex: boldRegex,
-          formatSelection: (TextEditingValue value, String selectedText) =>
-              value.copyWith(
-            text: value.text.replaceFirst(selectedText, '*$selectedText*'),
-            selection: value.selection.copyWith(
-              baseOffset: value.selection.baseOffset + 1,
-              extentOffset: value.selection.extentOffset + 1,
-            ),
-          ),
-          styleBuilder: (context, match, style) => [
-            TextSpan(
-              text: match.opening.text,
-              style: const TextStyle(color: Colors.grey),
-            ),
-            TextSpan(
-              text: match.content.text,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextSpan(
-              text: match.closing.text,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-          rasterizedStyleBuilder: (context, match, style) => [
-            TextSpan(
-              text: match.content.text,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
           matchBuilder: (match) => defaultEncapsulatedMatchBuilder(
             match,
+            ['boldOpening', 'boldContent', 'boldClosing'],
             BoldMatch.from,
           ),
         );
+
+  @override
+  bool canClaimMatch(String match) =>
+      match.startsWith('*') && match.endsWith('*');
+
+  @override
+  List<InlineSpan> rasterizedStyleBuilder(
+    BuildContext context,
+    BoldMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          style: const TextStyle(fontWeight: FontWeight.bold),
+          children: recurMatch(context, match.content.text),
+        )
+      ];
+
+  @override
+  List<InlineSpan> styleBuilder(
+    BuildContext context,
+    BoldMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          text: match.opening.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+        TextSpan(
+          style: const TextStyle(fontWeight: FontWeight.bold),
+          children: recurMatch(context, match.content.text),
+        ),
+        TextSpan(
+          text: match.closing.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      ];
 }

@@ -4,28 +4,24 @@ import 'package:google_fonts/google_fonts.dart';
 import '../default_regexes.dart';
 import '../matching.dart';
 
-class CodeBlockMatch extends EncapsulatedMatch {
-  final TextEditingValue? language;
+class MonoSpaceMatch extends EncapsulatedMatch {
 
-  CodeBlockMatch(
+  MonoSpaceMatch(
     super.match, {
     required super.opening,
-    required this.language,
     required super.content,
     required super.closing,
   });
 }
 
-class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
-  CodeBlockMatcher()
+class MonoSpaceMatcher extends RichMatcher<MonoSpaceMatch> {
+  MonoSpaceMatcher()
       : super(
-          regex: codeBlockRegex,
+          regex: monoSpaceRegex,
           matchBuilder: (RegExpMatch match) {
-            final startQuote = match.namedGroup('codeBlockOpening')!;
-            final language =
-                match.namedGroup('codeBlockLanguage')?.trim() ?? '';
-            final contentString = match.namedGroup('codeBlockContent')!;
-            final endQuote = match.namedGroup('codeBlockClosing')!;
+            final startQuote = match.namedGroup('monoSpaceOpening')!;
+            final contentString = match.namedGroup('monoSpaceContent')!;
+            final endQuote = match.namedGroup('monoSpaceClosing')!;
 
             final TextEditingValue startQuoteVal = TextEditingValue(
               text: startQuote,
@@ -34,17 +30,10 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
                 extentOffset: match.start + startQuote.length,
               ),
             );
-            final TextEditingValue languageVal = TextEditingValue(
-              text: language,
-              selection: TextSelection(
-                baseOffset: match.start + startQuote.length,
-                extentOffset: match.start + startQuote.length + language.length,
-              ),
-            );
             final TextEditingValue contentVal = TextEditingValue(
               text: contentString,
               selection: TextSelection(
-                baseOffset: match.start + startQuote.length + language.length,
+                baseOffset: match.start + startQuote.length,
                 extentOffset: match.end - endQuote.length,
               ),
             );
@@ -55,10 +44,9 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
                 extentOffset: match.end,
               ),
             );
-            return CodeBlockMatch(
+            return MonoSpaceMatch(
               match,
               opening: startQuoteVal,
-              language: languageVal,
               content: contentVal,
               closing: endQuoteVal,
             );
@@ -67,20 +55,20 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
 
   @override
   bool canClaimMatch(String match) =>
-      match.startsWith('```') && match.endsWith('```');
+      match.startsWith('`') && match.endsWith('`');
 
   @override
   List<InlineSpan> rasterizedStyleBuilder(
     BuildContext context,
-    CodeBlockMatch match,
+    MonoSpaceMatch match,
     RecurMatchBuilder recurMatch,
   ) =>
       [
         WidgetSpan(
           child: Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.5),
+              color: Colors.grey.withOpacity(0.35),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text.rich(
@@ -98,7 +86,7 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
   @override
   List<InlineSpan> styleBuilder(
     BuildContext context,
-    CodeBlockMatch match,
+    MonoSpaceMatch match,
     RecurMatchBuilder recurMatch,
   ) =>
       [
@@ -109,14 +97,6 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
             fontSize: 12,
           ),
         ),
-        if (match.language != null)
-          TextSpan(
-            text: match.language!.text,
-            style: GoogleFonts.sourceCodePro(
-              color: Colors.green,
-              fontSize: 12,
-            ),
-          ),
         TextSpan(
           text: match.content.text,
           style: GoogleFonts.sourceCodePro(

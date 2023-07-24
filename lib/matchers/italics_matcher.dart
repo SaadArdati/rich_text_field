@@ -4,7 +4,7 @@ import '../default_regexes.dart';
 import '../matching.dart';
 
 class ItalicMatch extends EncapsulatedMatch {
-  const ItalicMatch(
+  ItalicMatch(
     super.match, {
     required super.opening,
     required super.closing,
@@ -24,37 +24,48 @@ class ItalicMatcher extends RichMatcher<ItalicMatch> {
   ItalicMatcher()
       : super(
           regex: italicRegex,
-          formatSelection: (TextEditingValue value, String selectedText) =>
-              value.copyWith(
-            text: value.text.replaceFirst(selectedText, '_${selectedText}_'),
-            selection: value.selection.copyWith(
-              baseOffset: value.selection.baseOffset + 1,
-              extentOffset: value.selection.extentOffset + 1,
-            ),
-          ),
-          styleBuilder: (context, match, style) => [
-            TextSpan(
-              text: match.opening.text,
-              style: const TextStyle(color: Colors.grey),
-            ),
-            TextSpan(
-              text: match.content.text,
-              style: const TextStyle(fontStyle: FontStyle.italic),
-            ),
-            TextSpan(
-              text: match.closing.text,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-          rasterizedStyleBuilder: (context, match, style) => [
-            TextSpan(
-              text: match.content.text,
-              style: const TextStyle(fontStyle: FontStyle.italic),
-            ),
-          ],
           matchBuilder: (match) => defaultEncapsulatedMatchBuilder(
             match,
+            ['italicsOpening', 'italicsContent', 'italicsClosing'],
             ItalicMatch.from,
           ),
         );
+
+  @override
+  bool canClaimMatch(String match) =>
+      match.startsWith('_') && match.endsWith('_');
+
+  @override
+  List<InlineSpan> rasterizedStyleBuilder(
+    BuildContext context,
+    ItalicMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          style: const TextStyle(fontStyle: FontStyle.italic),
+          children: recurMatch(context, match.content.text),
+        )
+      ];
+
+  @override
+  List<InlineSpan> styleBuilder(
+    BuildContext context,
+    ItalicMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          text: match.opening.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+        TextSpan(
+          style: const TextStyle(fontStyle: FontStyle.italic),
+          children: recurMatch(context, match.content.text),
+        ),
+        TextSpan(
+          text: match.closing.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      ];
 }

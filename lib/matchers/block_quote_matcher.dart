@@ -4,7 +4,7 @@ import '../default_regexes.dart';
 import '../matching.dart';
 
 class BlockQuoteMatch extends StartMatch {
-  const BlockQuoteMatch(
+  BlockQuoteMatch(
     super.match, {
     required super.opening,
     required super.content,
@@ -15,67 +15,9 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
   BlockQuoteMatcher()
       : super(
           regex: blockQuoteRegex,
-          formatSelection: (TextEditingValue value, String selectedText) =>
-              value.copyWith(
-            text: value.text.replaceFirst(selectedText, '> $selectedText'),
-            selection: value.selection.copyWith(
-              baseOffset: value.selection.baseOffset + 3,
-              extentOffset: value.selection.extentOffset + 3,
-            ),
-          ),
-          styleBuilder: (context, match, style) {
-            return [
-              TextSpan(
-                text: match.opening.text,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              TextSpan(
-                text: match.content.text,
-              ),
-            ];
-          },
-          rasterizedStyleBuilder: (context, match, style) {
-            final blockNestingCount =
-                match.opening.text.replaceAll(' ', '').length;
-
-            return [
-              WidgetSpan(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    for (var i = 0; i < blockNestingCount; i++)
-                      Positioned(
-                        top: -2,
-                        bottom: -2,
-                        left: i * 16,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(2),
-                            border: Border.all(
-                              color: Colors.grey,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: blockNestingCount * 3 + blockNestingCount * 8 + 8,
-                      ),
-                      child: Text.rich(
-                        TextSpan(
-                          text: match.content.text,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ];
-          },
           matchBuilder: (RegExpMatch match) {
-            final opening = match.group(1)!;
-            final contentString = match.group(2)!;
+            final opening = match.namedGroup('blockQuoteArrow')!;
+            final contentString = match.namedGroup('blockQuoteContent')!;
 
             final TextEditingValue openingVal = TextEditingValue(
               text: opening,
@@ -98,4 +40,67 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
             );
           },
         );
+
+  @override
+  bool canClaimMatch(String match) => match.startsWith('>');
+
+  @override
+  List<InlineSpan> rasterizedStyleBuilder(
+    BuildContext context,
+    BlockQuoteMatch match,
+    RecurMatchBuilder recurMatch,
+  ) {
+    final blockNestingCount = match.opening.text.replaceAll(' ', '').length;
+
+    return [
+      WidgetSpan(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            for (var i = 0; i < blockNestingCount; i++)
+              Positioned(
+                top: -2,
+                bottom: -2,
+                left: i * 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: blockNestingCount * 3 + blockNestingCount * 8 + 8,
+              ),
+              child: Text.rich(
+                TextSpan(
+                  children: recurMatch(context, match.content.text),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  @override
+  List<InlineSpan> styleBuilder(
+    BuildContext context,
+    BlockQuoteMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          text: match.opening.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+        TextSpan(
+          text: match.content.text,
+        ),
+      ];
 }

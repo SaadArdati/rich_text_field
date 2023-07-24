@@ -4,7 +4,7 @@ import '../default_regexes.dart';
 import '../matching.dart';
 
 class StrikeThroughMatch extends EncapsulatedMatch {
-  const StrikeThroughMatch(
+  StrikeThroughMatch(
     super.match, {
     required super.opening,
     required super.closing,
@@ -24,37 +24,52 @@ class StrikeThroughMatcher extends RichMatcher<StrikeThroughMatch> {
   StrikeThroughMatcher()
       : super(
           regex: strikeThroughRegex,
-          formatSelection: (TextEditingValue value, String selectedText) =>
-              value.copyWith(
-            text: value.text.replaceFirst(selectedText, '~$selectedText~'),
-            selection: value.selection.copyWith(
-              baseOffset: value.selection.baseOffset + 1,
-              extentOffset: value.selection.extentOffset + 1,
-            ),
-          ),
-          styleBuilder: (context, match, style) => [
-            TextSpan(
-              text: match.opening.text,
-              style: const TextStyle(color: Colors.grey),
-            ),
-            TextSpan(
-              text: match.content.text,
-              style: const TextStyle(decoration: TextDecoration.lineThrough),
-            ),
-            TextSpan(
-              text: match.closing.text,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-          rasterizedStyleBuilder: (context, match, style) => [
-            TextSpan(
-              text: match.content.text,
-              style: const TextStyle(decoration: TextDecoration.lineThrough),
-            ),
-          ],
           matchBuilder: (match) => defaultEncapsulatedMatchBuilder(
             match,
+            [
+              'strikeThroughOpening',
+              'strikeThroughContent',
+              'strikeThroughClosing'
+            ],
             StrikeThroughMatch.from,
           ),
         );
+
+  @override
+  bool canClaimMatch(String match) =>
+      match.startsWith('~') && match.endsWith('~');
+
+  @override
+  List<InlineSpan> rasterizedStyleBuilder(
+    BuildContext context,
+    StrikeThroughMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          text: match.content.text,
+          style: const TextStyle(decoration: TextDecoration.lineThrough),
+        ),
+      ];
+
+  @override
+  List<InlineSpan> styleBuilder(
+    BuildContext context,
+    StrikeThroughMatch match,
+    RecurMatchBuilder recurMatch,
+  ) =>
+      [
+        TextSpan(
+          text: match.opening.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+        TextSpan(
+          text: match.content.text,
+          style: const TextStyle(decoration: TextDecoration.lineThrough),
+        ),
+        TextSpan(
+          text: match.closing.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      ];
 }
