@@ -4,3 +4,6 @@ export 'strike_through_matcher.dart';
 export 'heading_matcher.dart';
 export 'block_quote_matcher.dart';
 export 'code_block_matcher.dart';
+export 'mono_space_matcher.dart';
+export 'bullet_line_matcher.dart';
+export 'numbered_line_matcher.dart';

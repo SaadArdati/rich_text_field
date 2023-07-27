@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:screwdriver/screwdriver.dart';
 
 import 'matchers/matchers.dart';
-import 'matchers/mono_space_matcher.dart';
 import 'matching.dart';
 
 bool _defaultShouldDebounceFormatting(String text) => text.length > 1000;
@@ -38,6 +37,8 @@ class RichTextEditingController extends TextEditingController {
               BlockQuoteMatcher(),
               CodeBlockMatcher(),
               MonoSpaceMatcher(),
+              BulletLineMatcher(),
+              NumberLineMatcher(),
             ];
 
   @override
