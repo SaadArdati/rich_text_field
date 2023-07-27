@@ -21,22 +21,22 @@ class ItalicMatch extends EncapsulatedMatch {
 }
 
 class ItalicMatcher extends RichMatcher<ItalicMatch> {
-  ItalicMatcher()
-      : super(
-          regex: italicRegex,
-          matchBuilder: (match) => defaultEncapsulatedMatchBuilder(
-            match,
-            ['italicsOpening', 'italicsContent', 'italicsClosing'],
-            ItalicMatch.from,
-          ),
-        );
+  ItalicMatcher() : super(regex: italicRegex);
 
   @override
   bool canClaimMatch(String match) =>
       match.startsWith('_') && match.endsWith('_');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  ItalicMatch mapMatch(RegExpMatch match) =>
+      defaultEncapsulatedMatchBuilder(
+        match,
+        ['italicsOpening', 'italicsContent', 'italicsClosing'],
+        ItalicMatch.from,
+      );
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     ItalicMatch match,
     RecurMatchBuilder recurMatch,
@@ -49,7 +49,7 @@ class ItalicMatcher extends RichMatcher<ItalicMatch> {
       ];
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     ItalicMatch match,
     RecurMatchBuilder recurMatch,

@@ -17,60 +17,58 @@ class CodeBlockMatch extends EncapsulatedMatch {
 }
 
 class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
-  CodeBlockMatcher()
-      : super(
-          regex: codeBlockRegex,
-          matchBuilder: (RegExpMatch match) {
-            final startQuote = match.namedGroup('codeBlockOpening')!;
-            final language =
-                match.namedGroup('codeBlockLanguage')?.trim() ?? '';
-            final contentString = match.namedGroup('codeBlockContent')!;
-            final endQuote = match.namedGroup('codeBlockClosing')!;
-
-            final TextEditingValue startQuoteVal = TextEditingValue(
-              text: startQuote,
-              selection: TextSelection(
-                baseOffset: match.start,
-                extentOffset: match.start + startQuote.length,
-              ),
-            );
-            final TextEditingValue languageVal = TextEditingValue(
-              text: language,
-              selection: TextSelection(
-                baseOffset: match.start + startQuote.length,
-                extentOffset: match.start + startQuote.length + language.length,
-              ),
-            );
-            final TextEditingValue contentVal = TextEditingValue(
-              text: contentString,
-              selection: TextSelection(
-                baseOffset: match.start + startQuote.length + language.length,
-                extentOffset: match.end - endQuote.length,
-              ),
-            );
-            final TextEditingValue endQuoteVal = TextEditingValue(
-              text: endQuote,
-              selection: TextSelection(
-                baseOffset: match.end - endQuote.length,
-                extentOffset: match.end,
-              ),
-            );
-            return CodeBlockMatch(
-              match,
-              opening: startQuoteVal,
-              language: languageVal,
-              content: contentVal,
-              closing: endQuoteVal,
-            );
-          },
-        );
+  CodeBlockMatcher() : super(regex: codeBlockRegex);
 
   @override
   bool canClaimMatch(String match) =>
       match.startsWith('```') && match.endsWith('```');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  CodeBlockMatch mapMatch(RegExpMatch match) {
+    final startQuote = match.namedGroup('codeBlockOpening')!;
+    final language = match.namedGroup('codeBlockLanguage')?.trim() ?? '';
+    final contentString = match.namedGroup('codeBlockContent')!;
+    final endQuote = match.namedGroup('codeBlockClosing')!;
+
+    final TextEditingValue startQuoteVal = TextEditingValue(
+      text: startQuote,
+      selection: TextSelection(
+        baseOffset: match.start,
+        extentOffset: match.start + startQuote.length,
+      ),
+    );
+    final TextEditingValue languageVal = TextEditingValue(
+      text: language,
+      selection: TextSelection(
+        baseOffset: match.start + startQuote.length,
+        extentOffset: match.start + startQuote.length + language.length,
+      ),
+    );
+    final TextEditingValue contentVal = TextEditingValue(
+      text: contentString,
+      selection: TextSelection(
+        baseOffset: match.start + startQuote.length + language.length,
+        extentOffset: match.end - endQuote.length,
+      ),
+    );
+    final TextEditingValue endQuoteVal = TextEditingValue(
+      text: endQuote,
+      selection: TextSelection(
+        baseOffset: match.end - endQuote.length,
+        extentOffset: match.end,
+      ),
+    );
+    return CodeBlockMatch(
+      match,
+      opening: startQuoteVal,
+      language: languageVal,
+      content: contentVal,
+      closing: endQuoteVal,
+    );
+  }
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     CodeBlockMatch match,
     RecurMatchBuilder recurMatch,
@@ -85,7 +83,7 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
             ),
             child: Text.rich(
               TextSpan(
-                text: match.content.text,
+                text: match.content.text.trim(),
               ),
               style: GoogleFonts.sourceCodePro(
                 fontSize: 12,
@@ -96,7 +94,7 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
       ];
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     CodeBlockMatch match,
     RecurMatchBuilder recurMatch,
@@ -111,7 +109,7 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
         ),
         if (match.language != null)
           TextSpan(
-            text: match.language!.text,
+            text: '${match.language!.text}\n',
             style: GoogleFonts.sourceCodePro(
               color: Colors.green,
               fontSize: 12,

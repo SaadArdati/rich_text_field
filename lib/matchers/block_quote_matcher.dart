@@ -12,40 +12,39 @@ class BlockQuoteMatch extends StartMatch {
 }
 
 class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
-  BlockQuoteMatcher()
-      : super(
-          regex: blockQuoteRegex,
-          matchBuilder: (RegExpMatch match) {
-            final opening = match.namedGroup('blockQuoteArrow')!;
-            final contentString = match.namedGroup('blockQuoteContent')!;
-
-            final TextEditingValue openingVal = TextEditingValue(
-              text: opening,
-              selection: TextSelection(
-                baseOffset: match.start,
-                extentOffset: match.start + opening.length,
-              ),
-            );
-            final TextEditingValue contentVal = TextEditingValue(
-              text: contentString,
-              selection: TextSelection(
-                baseOffset: match.start + opening.length + 1,
-                extentOffset: match.end - 1,
-              ),
-            );
-            return BlockQuoteMatch(
-              match,
-              opening: openingVal,
-              content: contentVal,
-            );
-          },
-        );
+  BlockQuoteMatcher() : super(regex: blockQuoteRegex);
 
   @override
   bool canClaimMatch(String match) => match.startsWith('>');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  BlockQuoteMatch mapMatch(RegExpMatch match) {
+    final opening = match.namedGroup('blockQuoteArrow')!;
+    final contentString = match.namedGroup('blockQuoteContent')!;
+
+    final TextEditingValue openingVal = TextEditingValue(
+      text: opening,
+      selection: TextSelection(
+        baseOffset: match.start,
+        extentOffset: match.start + opening.length,
+      ),
+    );
+    final TextEditingValue contentVal = TextEditingValue(
+      text: contentString,
+      selection: TextSelection(
+        baseOffset: match.start + opening.length + 1,
+        extentOffset: match.end - 1,
+      ),
+    );
+    return BlockQuoteMatch(
+      match,
+      opening: openingVal,
+      content: contentVal,
+    );
+  }
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     BlockQuoteMatch match,
     RecurMatchBuilder recurMatch,
@@ -89,7 +88,7 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
   }
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     BlockQuoteMatch match,
     RecurMatchBuilder recurMatch,

@@ -17,35 +17,34 @@ class HeadingMatch extends RichMatch {
 }
 
 class HeadingMatcher extends RichMatcher<HeadingMatch> {
-  HeadingMatcher()
-      : super(
-          regex: headingRegex,
-          matchBuilder: (RegExpMatch match) {
-            final hashtagsString = match.namedGroup('headingHashtags')!;
-            final contentString = match.namedGroup('headingContent')!;
-
-            final TextEditingValue hashtags = TextEditingValue(
-              text: hashtagsString,
-              selection: TextSelection.collapsed(
-                offset: match.start,
-              ),
-            );
-            final TextEditingValue content = TextEditingValue(
-              text: contentString,
-              selection: TextSelection.collapsed(
-                offset: match.start + match.end - 2,
-              ),
-            );
-
-            return HeadingMatch(match, hashtags: hashtags, content: content);
-          },
-        );
+  HeadingMatcher() : super(regex: headingRegex);
 
   @override
   bool canClaimMatch(String match) => match.startsWith('#');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  HeadingMatch mapMatch(RegExpMatch match) {
+    final hashtagsString = match.namedGroup('headingHashtags')!;
+    final contentString = match.namedGroup('headingContent')!;
+
+    final TextEditingValue hashtags = TextEditingValue(
+      text: hashtagsString,
+      selection: TextSelection.collapsed(
+        offset: match.start,
+      ),
+    );
+    final TextEditingValue content = TextEditingValue(
+      text: contentString,
+      selection: TextSelection.collapsed(
+        offset: match.start + match.end - 2,
+      ),
+    );
+
+    return HeadingMatch(match, hashtags: hashtags, content: content);
+  }
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     HeadingMatch match,
     RecurMatchBuilder recurMatch,
@@ -57,14 +56,14 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
     final fontSize = 16 + (6 - hashtagCount) * 2.0;
     return [
       TextSpan(
-        text: match.content.text,
+        text: match.content.text.trimLeft(),
         style: TextStyle(fontSize: fontSize),
       ),
     ];
   }
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     HeadingMatch match,
     RecurMatchBuilder recurMatch,

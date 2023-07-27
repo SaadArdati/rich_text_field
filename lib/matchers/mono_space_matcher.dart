@@ -5,7 +5,6 @@ import '../default_regexes.dart';
 import '../matching.dart';
 
 class MonoSpaceMatch extends EncapsulatedMatch {
-
   MonoSpaceMatch(
     super.match, {
     required super.opening,
@@ -15,50 +14,49 @@ class MonoSpaceMatch extends EncapsulatedMatch {
 }
 
 class MonoSpaceMatcher extends RichMatcher<MonoSpaceMatch> {
-  MonoSpaceMatcher()
-      : super(
-          regex: monoSpaceRegex,
-          matchBuilder: (RegExpMatch match) {
-            final startQuote = match.namedGroup('monoSpaceOpening')!;
-            final contentString = match.namedGroup('monoSpaceContent')!;
-            final endQuote = match.namedGroup('monoSpaceClosing')!;
-
-            final TextEditingValue startQuoteVal = TextEditingValue(
-              text: startQuote,
-              selection: TextSelection(
-                baseOffset: match.start,
-                extentOffset: match.start + startQuote.length,
-              ),
-            );
-            final TextEditingValue contentVal = TextEditingValue(
-              text: contentString,
-              selection: TextSelection(
-                baseOffset: match.start + startQuote.length,
-                extentOffset: match.end - endQuote.length,
-              ),
-            );
-            final TextEditingValue endQuoteVal = TextEditingValue(
-              text: endQuote,
-              selection: TextSelection(
-                baseOffset: match.end - endQuote.length,
-                extentOffset: match.end,
-              ),
-            );
-            return MonoSpaceMatch(
-              match,
-              opening: startQuoteVal,
-              content: contentVal,
-              closing: endQuoteVal,
-            );
-          },
-        );
+  MonoSpaceMatcher() : super(regex: monoSpaceRegex);
 
   @override
   bool canClaimMatch(String match) =>
       match.startsWith('`') && match.endsWith('`');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  MonoSpaceMatch mapMatch(RegExpMatch match) {
+    final startQuote = match.namedGroup('monoSpaceOpening')!;
+    final contentString = match.namedGroup('monoSpaceContent')!;
+    final endQuote = match.namedGroup('monoSpaceClosing')!;
+
+    final TextEditingValue startQuoteVal = TextEditingValue(
+      text: startQuote,
+      selection: TextSelection(
+        baseOffset: match.start,
+        extentOffset: match.start + startQuote.length,
+      ),
+    );
+    final TextEditingValue contentVal = TextEditingValue(
+      text: contentString,
+      selection: TextSelection(
+        baseOffset: match.start + startQuote.length,
+        extentOffset: match.end - endQuote.length,
+      ),
+    );
+    final TextEditingValue endQuoteVal = TextEditingValue(
+      text: endQuote,
+      selection: TextSelection(
+        baseOffset: match.end - endQuote.length,
+        extentOffset: match.end,
+      ),
+    );
+    return MonoSpaceMatch(
+      match,
+      opening: startQuoteVal,
+      content: contentVal,
+      closing: endQuoteVal,
+    );
+  }
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     MonoSpaceMatch match,
     RecurMatchBuilder recurMatch,
@@ -84,7 +82,7 @@ class MonoSpaceMatcher extends RichMatcher<MonoSpaceMatch> {
       ];
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     MonoSpaceMatch match,
     RecurMatchBuilder recurMatch,

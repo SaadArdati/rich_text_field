@@ -104,7 +104,7 @@ class RichTextEditingController extends TextEditingController {
           (entry) => entry.canClaimMatch(text),
         );
 
-        final RichMatch richMatch = matcher.matchBuilder(match);
+        final RichMatch richMatch = matcher.mapMatch(match);
 
         return TextSpan(
           children: onMatch(
@@ -179,16 +179,12 @@ class RichTextEditingController extends TextEditingController {
     bool rasterized = false,
   }) =>
       rasterized
-          ? matcher.rasterizedStyleBuilder(context, match, recurMatch)
-          : matcher.styleBuilder(context, match, recurMatch);
+          ? matcher.styleBuilder(context, match, recurMatch)
+          : matcher.inlineStyleBuilder(context, match, recurMatch);
 
   /// Called for parts of [text] that does not match with any regexes.
-  RichSpan onNonMatch(String span, TextSelection selection, TextStyle? style) =>
-      RichSpan(
-          matcher: null,
-          selection: selection,
-          text: span,
-          style: style ?? const TextStyle());
+  RichSpan onNonMatch(String span, TextSelection selection, TextStyle style) =>
+      RichSpan(matcher: null, selection: selection, text: span, style: style);
 
   /// Called when all regex matching is done and all the matches have
   /// been collected.

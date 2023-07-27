@@ -21,26 +21,26 @@ class StrikeThroughMatch extends EncapsulatedMatch {
 }
 
 class StrikeThroughMatcher extends RichMatcher<StrikeThroughMatch> {
-  StrikeThroughMatcher()
-      : super(
-          regex: strikeThroughRegex,
-          matchBuilder: (match) => defaultEncapsulatedMatchBuilder(
-            match,
-            [
-              'strikeThroughOpening',
-              'strikeThroughContent',
-              'strikeThroughClosing'
-            ],
-            StrikeThroughMatch.from,
-          ),
-        );
+  StrikeThroughMatcher() : super(regex: strikeThroughRegex);
 
   @override
   bool canClaimMatch(String match) =>
       match.startsWith('~') && match.endsWith('~');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  StrikeThroughMatch mapMatch(RegExpMatch match) =>
+      defaultEncapsulatedMatchBuilder(
+        match,
+        [
+          'strikeThroughOpening',
+          'strikeThroughContent',
+          'strikeThroughClosing'
+        ],
+        StrikeThroughMatch.from,
+      );
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     StrikeThroughMatch match,
     RecurMatchBuilder recurMatch,
@@ -53,7 +53,7 @@ class StrikeThroughMatcher extends RichMatcher<StrikeThroughMatch> {
       ];
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     StrikeThroughMatch match,
     RecurMatchBuilder recurMatch,

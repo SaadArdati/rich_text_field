@@ -21,22 +21,21 @@ class BoldMatch extends EncapsulatedMatch {
 }
 
 class BoldMatcher extends RichMatcher<BoldMatch> {
-  BoldMatcher()
-      : super(
-          regex: boldRegex,
-          matchBuilder: (match) => defaultEncapsulatedMatchBuilder(
-            match,
-            ['boldOpening', 'boldContent', 'boldClosing'],
-            BoldMatch.from,
-          ),
-        );
+  BoldMatcher() : super(regex: boldRegex);
 
   @override
   bool canClaimMatch(String match) =>
       match.startsWith('*') && match.endsWith('*');
 
   @override
-  List<InlineSpan> rasterizedStyleBuilder(
+  BoldMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
+        match,
+        ['boldOpening', 'boldContent', 'boldClosing'],
+        BoldMatch.from,
+      );
+
+  @override
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     BoldMatch match,
     RecurMatchBuilder recurMatch,
@@ -49,7 +48,7 @@ class BoldMatcher extends RichMatcher<BoldMatch> {
       ];
 
   @override
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     BoldMatch match,
     RecurMatchBuilder recurMatch,

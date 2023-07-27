@@ -104,11 +104,6 @@ T defaultEncapsulatedMatchBuilder<T extends EncapsulatedMatch>(
   EncapsulatedMatchTypeConverter<T> converter,
 ) {
   assert(groupNames.length == 3);
-  print('groups: ${match.groupCount}');
-  print('group names: ${match.groupNames.join(', ')}');
-  print('group contents: ${match.groups([
-        for (var i = 0; i < match.groupCount; i++) i
-      ])}');
   final openingChar = match.namedGroup(groupNames[0])!;
   final contentString = match.namedGroup(groupNames[1])!;
   final closingChar = match.namedGroup(groupNames[2])!;
@@ -194,7 +189,7 @@ typedef SelectionFormatter = TextEditingValue Function(
 ///
 /// [MatchBuilder] is used to convert the resulting [RegExpMatch] to a specific
 /// type of [RichMatch] if necessary for richer match data-parsing that gets
-/// passed to [styleBuilder].
+/// passed to [inlineStyleBuilder].
 ///
 /// [StyleBuilder] is used to convert the resulting [RichMatch] to a list of
 /// [TextSpan]s to format the match.
@@ -202,17 +197,11 @@ abstract class RichMatcher<T extends RichMatch> {
   /// The [RegExp] to match any given text.
   final RegExp regex;
 
-  /// The [MatchBuilder] to convert the resulting [RegExpMatch] to a specific
-  /// type of [RichMatch] if necessary for richer match data-parsing that gets
-  /// passed to [styleBuilder].
-  final MatchBuilder<T> matchBuilder;
-
-  /// Creates a new [RichMatcher] instance given a [regex], [styleBuilder],
-  /// and [matchBuilder].
-  RichMatcher({
+  /// Creates a new [RichMatcher] instance given a [regex], [inlineStyleBuilder],
+  /// and [mapMatch].
+  const RichMatcher({
     required this.regex,
-    T Function(RegExpMatch match)? matchBuilder,
-  }) : matchBuilder = matchBuilder ?? defaultMatchBuilder;
+  });
 
   /// Whether this matcher allows recursive matches. If true, then the matcher
   /// will be run on the resulting matches of this matcher. If false, then the
@@ -230,11 +219,14 @@ abstract class RichMatcher<T extends RichMatch> {
   /// find the correct one, which can be horribly inefficient.
   bool canClaimMatch(String match);
 
-  int numberOfGroups() => 3;
+  /// The [MatchBuilder] to convert the resulting [RegExpMatch] to a specific
+  /// type of [RichMatch] if necessary for richer match data-parsing that gets
+  /// passed to [inlineStyleBuilder].
+  T mapMatch(RegExpMatch match) => defaultMatchBuilder(match);
 
   /// The [StyleBuilder] to convert the resulting [RichMatch] to a list of
   /// [TextSpan]s to format the match.
-  List<InlineSpan> styleBuilder(
+  List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
     T match,
     RecurMatchBuilder recurMatch,
@@ -243,51 +235,9 @@ abstract class RichMatcher<T extends RichMatch> {
   /// The [StyleBuilder] to convert the resulting [RichMatch] to a list of
   /// [TextSpan]s to format the match but without any formatting symbols
   /// included in the result.
-  List<InlineSpan> rasterizedStyleBuilder(
+  List<InlineSpan> styleBuilder(
     BuildContext context,
     T match,
     RecurMatchBuilder recurMatch,
   );
-
-  (RichSpan, RichSpan) splitSpan(RichSpan span, int index) {
-    final first = span.copyWith(
-      text: span.text.substring(0, index),
-      selection: span.selection.copyWith(
-        extentOffset: span.selection.start + index,
-      ),
-    );
-    final second = span.copyWith(
-      text: span.text.substring(index),
-      selection: span.selection.copyWith(
-        baseOffset: span.selection.start + index,
-      ),
-    );
-
-    return (first, second);
-  }
-
-  (RichSpan, RichSpan, RichSpan) spliceSpan(
-      RichSpan span, int index1, int index2) {
-    final first = span.copyWith(
-      text: span.text.substring(0, index1),
-      selection: span.selection.copyWith(
-        extentOffset: span.selection.start + index1,
-      ),
-    );
-    final second = span.copyWith(
-      text: span.text.substring(index1, index2),
-      selection: span.selection.copyWith(
-        baseOffset: span.selection.start + index1,
-        extentOffset: span.selection.start + index2,
-      ),
-    );
-    final third = span.copyWith(
-      text: span.text.substring(index2),
-      selection: span.selection.copyWith(
-        baseOffset: span.selection.start + index2,
-      ),
-    );
-
-    return (first, second, third);
-  }
 }
