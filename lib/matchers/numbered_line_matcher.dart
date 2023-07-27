@@ -67,9 +67,11 @@ class NumberLineMatcher extends RichMatcher<NumberLineMatch> {
           children: [
             Container(
                 margin: EdgeInsets.only(left: blockNestingCount * 4, right: 4),
-                child: Text(
-                  match.opening.text.trim(),
-                  style: const TextStyle(color: Colors.grey),
+                child: SelectionContainer.disabled(
+                  child: Text(
+                    match.opening.text.trim(),
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 )),
             Text.rich(
               TextSpan(
