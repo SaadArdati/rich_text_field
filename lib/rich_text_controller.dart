@@ -39,6 +39,7 @@ class RichTextEditingController extends TextEditingController {
               MonoSpaceMatcher(),
               BulletLineMatcher(),
               NumberLineMatcher(),
+              LinkMatcher(),
             ];
 
   @override

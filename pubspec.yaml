@@ -15,6 +15,7 @@ dependencies:
   google_fonts: ^5.1.0
   collection: ^1.17.1
   screwdriver: ^5.2.0
+  url_launcher: ^6.1.12
 
 dev_dependencies:
   flutter_test:

@@ -7,3 +7,4 @@ export 'code_block_matcher.dart';
 export 'mono_space_matcher.dart';
 export 'bullet_line_matcher.dart';
 export 'numbered_line_matcher.dart';
+export 'link_matcher.dart';

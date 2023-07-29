@@ -9,6 +9,7 @@ const String bulletLine = r'''^(?<bulletLineBullet> *[-+*]{1} +)(?<bulletLineCon
 const String numberLine = r'''(?<numberLineNumber> *\d+[.-] +)(?<numberLineContent>.+)''';
 const String monoSpace = r'''(?<!`)(?<monoSpaceOpening>`)(?<monoSpaceContent>[^`\n]+)(?<monoSpaceClosing>`)(?!`)''';
 const String codeBlock = r'''(?<codeBlockOpening>``` *)(?<codeBlockLanguage>\w*\n)?(?<codeBlockContent>[^`]+)(?<codeBlockClosing>```)''';
+const String link = r'''!?\[(?<linkText>[^[\]]*)]\((?<linkURL>[^() ]*) *"?(?<linkTitle>[^()"]*)"?\)''';
 
 final RegExp boldRegex = RegExp(bold);
 final RegExp italicRegex = RegExp(italic);
@@ -19,3 +20,4 @@ final RegExp bulletLineRegex = RegExp(bulletLine);
 final RegExp numberLineRegex = RegExp(numberLine);
 final RegExp monoSpaceRegex = RegExp(monoSpace);
 final RegExp codeBlockRegex = RegExp(codeBlock);
+final RegExp linkRegex = RegExp(link);
