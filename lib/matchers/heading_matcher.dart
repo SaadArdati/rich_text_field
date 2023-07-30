@@ -17,10 +17,11 @@ class HeadingMatch extends RichMatch {
 }
 
 class HeadingMatcher extends RichMatcher<HeadingMatch> {
-  HeadingMatcher() : super(regex: headingRegex);
-
-  @override
-  bool canClaimMatch(String match) => match.startsWith('#');
+  HeadingMatcher()
+      : super(
+          regex: headingRegex,
+          groupNames: ['headingHashtags', 'headingContent'],
+        );
 
   @override
   HeadingMatch mapMatch(RegExpMatch match) {
@@ -56,8 +57,8 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
     final fontSize = 16 + (6 - hashtagCount) * 2.0;
     return [
       TextSpan(
-        text: match.content.text.trimLeft(),
         style: TextStyle(fontSize: fontSize),
+        children: recurMatch(context, match.content.text.trimLeft()),
       ),
     ];
   }
@@ -80,8 +81,8 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
         style: const TextStyle(color: Colors.grey),
       ),
       TextSpan(
-        text: match.content.text,
         style: TextStyle(fontSize: fontSize),
+        children: recurMatch(context, match.content.text),
       ),
     ];
   }

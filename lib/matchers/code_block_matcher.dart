@@ -17,11 +17,16 @@ class CodeBlockMatch extends EncapsulatedMatch {
 }
 
 class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
-  CodeBlockMatcher() : super(regex: codeBlockRegex);
-
-  @override
-  bool canClaimMatch(String match) =>
-      match.startsWith('```') && match.endsWith('```');
+  CodeBlockMatcher()
+      : super(
+          regex: codeBlockRegex,
+          groupNames: [
+            'codeBlockOpening',
+            'codeBlockLanguage',
+            'codeBlockContent',
+            'codeBlockClosing',
+          ],
+        );
 
   @override
   CodeBlockMatch mapMatch(RegExpMatch match) {

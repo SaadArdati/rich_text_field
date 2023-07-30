@@ -14,11 +14,15 @@ class MonoSpaceMatch extends EncapsulatedMatch {
 }
 
 class MonoSpaceMatcher extends RichMatcher<MonoSpaceMatch> {
-  MonoSpaceMatcher() : super(regex: monoSpaceRegex);
-
-  @override
-  bool canClaimMatch(String match) =>
-      match.startsWith('`') && match.endsWith('`');
+  MonoSpaceMatcher()
+      : super(
+          regex: monoSpaceRegex,
+          groupNames: [
+            'monoSpaceOpening',
+            'monoSpaceContent',
+            'monoSpaceClosing',
+          ],
+        );
 
   @override
   MonoSpaceMatch mapMatch(RegExpMatch match) {

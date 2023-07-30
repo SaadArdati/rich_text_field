@@ -21,21 +21,21 @@ class StrikeThroughMatch extends EncapsulatedMatch {
 }
 
 class StrikeThroughMatcher extends RichMatcher<StrikeThroughMatch> {
-  StrikeThroughMatcher() : super(regex: strikeThroughRegex);
-
-  @override
-  bool canClaimMatch(String match) =>
-      match.startsWith('~') && match.endsWith('~');
+  StrikeThroughMatcher()
+      : super(
+          regex: strikeThroughRegex,
+          groupNames: [
+            'strikeThroughOpening',
+            'strikeThroughContent',
+            'strikeThroughClosing'
+          ],
+        );
 
   @override
   StrikeThroughMatch mapMatch(RegExpMatch match) =>
       defaultEncapsulatedMatchBuilder(
         match,
-        [
-          'strikeThroughOpening',
-          'strikeThroughContent',
-          'strikeThroughClosing'
-        ],
+        groupNames,
         StrikeThroughMatch.from,
       );
 

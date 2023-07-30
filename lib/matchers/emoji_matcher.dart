@@ -1,17 +1,18 @@
+import 'package:dart_emoji/dart_emoji.dart';
 import 'package:flutter/material.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
 
-class BoldMatch extends EncapsulatedMatch {
-  BoldMatch(
+class EmojiMatch extends EncapsulatedMatch {
+  EmojiMatch(
     super.match, {
     required super.opening,
     required super.closing,
     required super.content,
   });
 
-  BoldMatch.from(EncapsulatedMatch match)
+  EmojiMatch.from(EncapsulatedMatch match)
       : this(
           match.match,
           opening: match.opening,
@@ -20,37 +21,39 @@ class BoldMatch extends EncapsulatedMatch {
         );
 }
 
-class BoldMatcher extends RichMatcher<BoldMatch> {
-  BoldMatcher()
+final EmojiParser _parser = EmojiParser();
+
+class EmojiMatcher extends RichMatcher<EmojiMatch> {
+  EmojiMatcher()
       : super(
-          regex: boldRegex,
-          groupNames: ['boldOpening', 'boldContent', 'boldClosing'],
+          regex: emojiRegex,
+          groupNames: ['emojiOpening', 'emojiContent', 'emojiClosing'],
         );
 
   @override
-  BoldMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
+  EmojiMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
         match,
         groupNames,
-        BoldMatch.from,
+        EmojiMatch.from,
       );
 
   @override
   List<InlineSpan> styleBuilder(
     BuildContext context,
-    BoldMatch match,
+    EmojiMatch match,
     RecurMatchBuilder recurMatch,
-  ) =>
-      [
-        TextSpan(
-          style: const TextStyle(fontWeight: FontWeight.bold),
-          children: recurMatch(context, match.content.text),
-        )
-      ];
+  ) {
+    return [
+      TextSpan(
+        text: _parser.get(match.content.text.trim().toLowerCase()).code,
+      ),
+    ];
+  }
 
   @override
   List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
-    BoldMatch match,
+    EmojiMatch match,
     RecurMatchBuilder recurMatch,
   ) =>
       [
@@ -59,7 +62,10 @@ class BoldMatcher extends RichMatcher<BoldMatch> {
           style: const TextStyle(color: Colors.grey),
         ),
         TextSpan(
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontStyle: FontStyle.italic,
+            color: Colors.yellow,
+          ),
           children: recurMatch(context, match.content.text),
         ),
         TextSpan(

@@ -1,136 +1,99 @@
-import 'package:flutter/gestures.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
 
-//const String link = r'''!?\[(?<linkText>[^[\]]*)]\((?<linkURL>[^() ]*) *"?(?<linkTitle>[^()"]*)"?\)''';
-class NumberLineMatch extends RichMatch {
-  final bool isImage;
-  final TextEditingValue linkText;
-  final TextEditingValue linkURL;
-  final TextEditingValue linkTitle;
-
-  NumberLineMatch(
+class NumberedLineMatch extends StartMatch {
+  NumberedLineMatch(
     super.match, {
-    required this.isImage,
-    required this.linkText,
-    required this.linkURL,
-    required this.linkTitle,
+    required super.opening,
+    required super.content,
   });
 }
 
-class NumberLineMatcher extends RichMatcher<NumberLineMatch> {
-  NumberLineMatcher() : super(regex: linkRegex);
+class NumberedLineMatcher extends RichMatcher<NumberedLineMatch> {
+  NumberedLineMatcher()
+      : super(
+          regex: numberLineRegex,
+          groupNames: ['numberLineNumber', 'numberLineContent'],
+        );
 
   @override
-  bool canClaimMatch(String match) {
-    return match.startsWith('!') || match.startsWith('[');
-  }
+  NumberedLineMatch mapMatch(RegExpMatch match) {
+    final opening = match.namedGroup('numberLineNumber')!;
+    final contentString = match.namedGroup('numberLineContent')!;
 
-  @override
-  NumberLineMatch mapMatch(RegExpMatch match) {
-    final String raw = match.group(0)!;
-    final bool isImage = raw.startsWith('!');
-    final String linkText = match.namedGroup('linkText')!;
-    final String linkURL = match.namedGroup('linkURL')!;
-    final String linkTitle = match.namedGroup('linkTitle')!;
-
-    final TextEditingValue linkTextVal = TextEditingValue(
-      text: linkText,
-      selection: findSelection(raw, linkText),
+    final TextEditingValue openingVal = TextEditingValue(
+      text: opening,
+      selection: TextSelection(
+        baseOffset: match.start,
+        extentOffset: match.start + opening.length,
+      ),
     );
-    final TextEditingValue linkURLVal = TextEditingValue(
-      text: linkURL,
-      selection: findSelection(raw, linkURL),
+    final TextEditingValue contentVal = TextEditingValue(
+      text: contentString,
+      selection: TextSelection(
+        baseOffset: match.start + opening.length + 1,
+        extentOffset: match.end - 1,
+      ),
     );
-    final TextEditingValue linkTitleVal = TextEditingValue(
-      text: linkTitle,
-      selection: findSelection(raw, linkTitle),
-    );
-
-    return NumberLineMatch(
+    return NumberedLineMatch(
       match,
-      isImage: isImage,
-      linkText: linkTextVal,
-      linkURL: linkURLVal,
-      linkTitle: linkTitleVal,
-    );
-  }
-
-  TextSelection findSelection(String text, String match) {
-    final int start = text.indexOf(match);
-    final int end = start + match.length;
-    return TextSelection(
-      baseOffset: start,
-      extentOffset: end,
+      opening: openingVal,
+      content: contentVal,
     );
   }
 
   @override
   List<InlineSpan> styleBuilder(
     BuildContext context,
-    NumberLineMatch match,
+    NumberedLineMatch match,
     RecurMatchBuilder recurMatch,
   ) {
-    if (match.isImage) {
-      return [
-        WidgetSpan(
-          child: Image.network(
-            match.linkURL.text,
-            semanticLabel: match.linkTitle.text,
-          ),
+    final blockNestingCount = max(
+      0,
+      match.opening.text.length - match.opening.text.trimLeft().length,
+    );
+
+    return [
+      WidgetSpan(
+        child: Row(
+          children: [
+            Container(
+                margin:
+                    EdgeInsets.only(left: blockNestingCount * 4 + 8, right: 4),
+                child: SelectionContainer.disabled(
+                  child: Text(
+                    match.opening.text.trim(),
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                )),
+            Text.rich(
+              TextSpan(
+                children: recurMatch(context, match.content.text),
+              ),
+            ),
+          ],
         ),
-      ];
-    } else {
-      return [
-        TextSpan(
-          text: match.linkText.text,
-          style: const TextStyle(color: Colors.blue),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () => launchUrlString(match.linkURL.text),
-          semanticsLabel: match.linkTitle.text,
-        ),
-      ];
-    }
+      ),
+    ];
   }
 
   @override
   List<InlineSpan> inlineStyleBuilder(
     BuildContext context,
-    NumberLineMatch match,
+    NumberedLineMatch match,
     RecurMatchBuilder recurMatch,
   ) =>
       [
-        const TextSpan(
-          text: '[',
-          style: TextStyle(color: Colors.grey),
-        ),
         TextSpan(
-          text: match.linkText.text,
+          text: match.opening.text,
           style: const TextStyle(color: Colors.grey),
         ),
-        const TextSpan(
-          text: ']',
-          style: TextStyle(color: Colors.grey),
-        ),
-        const TextSpan(
-          text: '(',
-          style: TextStyle(color: Colors.green),
-        ),
         TextSpan(
-          text: match.linkURL.text,
-          style: const TextStyle(color: Colors.blue),
-        ),
-        TextSpan(
-          text:
-              match.linkTitle.text.isEmpty ? '' : ' "${match.linkTitle.text}"',
-          style: const TextStyle(color: Colors.yellow),
-        ),
-        const TextSpan(
-          text: ')',
-          style: TextStyle(color: Colors.green),
+          text: match.content.text,
         ),
       ];
 }

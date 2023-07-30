@@ -144,9 +144,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             expands: true,
                             textAlignVertical: TextAlignVertical.top,
                             scrollController: textFieldScrollController,
+                            style: Theme.of(context).textTheme.bodyMedium,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 16,
+                              ),
                             ),
                           ),
                         ),
@@ -176,6 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 controller: previewScrollController,
                                 padding: const EdgeInsets.all(8),
                                 child: Text.rich(
+                                  style: Theme.of(context).textTheme.bodyMedium,
                                   _controller.getBetterFormattedText(
                                     context,
                                     rasterized: true,

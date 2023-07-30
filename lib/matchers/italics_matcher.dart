@@ -21,17 +21,16 @@ class ItalicMatch extends EncapsulatedMatch {
 }
 
 class ItalicMatcher extends RichMatcher<ItalicMatch> {
-  ItalicMatcher() : super(regex: italicRegex);
+  ItalicMatcher()
+      : super(
+          regex: italicRegex,
+          groupNames: ['italicsOpening', 'italicsContent', 'italicsClosing'],
+        );
 
   @override
-  bool canClaimMatch(String match) =>
-      match.startsWith('_') && match.endsWith('_');
-
-  @override
-  ItalicMatch mapMatch(RegExpMatch match) =>
-      defaultEncapsulatedMatchBuilder(
+  ItalicMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
         match,
-        ['italicsOpening', 'italicsContent', 'italicsClosing'],
+        groupNames,
         ItalicMatch.from,
       );
 

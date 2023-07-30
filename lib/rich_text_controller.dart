@@ -38,8 +38,12 @@ class RichTextEditingController extends TextEditingController {
               CodeBlockMatcher(),
               MonoSpaceMatcher(),
               BulletLineMatcher(),
-              NumberLineMatcher(),
               LinkMatcher(),
+              NumberedLineMatcher(),
+              HorizontalLineMatcher(),
+              EmojiMatcher(),
+              SubscriptMatcher(),
+              SuperscriptMatcher(),
             ];
 
   @override
@@ -86,7 +90,6 @@ class RichTextEditingController extends TextEditingController {
 
     final String pattern =
         matchers.map((matcher) => matcher.regex.pattern).join('|');
-    print('pattern: $pattern');
     final RegExp regex = RegExp(pattern, multiLine: true);
 
     return matchText(context, text, regex, rasterized: rasterized);
@@ -100,11 +103,16 @@ class RichTextEditingController extends TextEditingController {
   }) {
     final List<InlineSpan> spans = text.splitMap<InlineSpan>(
       regex,
-      onMatch: (match) {
-        final String text = match[0]!;
-        final RichMatcher matcher = matchers.firstWhere(
-          (entry) => entry.canClaimMatch(text),
-        );
+      onMatch: (RegExpMatch match) {
+        final RichMatcher matcher = matchers.firstWhere((matcher) {
+          for (final String groupName in matcher.groupNames) {
+            final String? value = match.namedGroup(groupName);
+
+            if (value != null) return true;
+          }
+
+          return false;
+        });
 
         final RichMatch richMatch = matcher.mapMatch(match);
 

@@ -12,10 +12,11 @@ class BlockQuoteMatch extends StartMatch {
 }
 
 class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
-  BlockQuoteMatcher() : super(regex: blockQuoteRegex);
-
-  @override
-  bool canClaimMatch(String match) => match.startsWith('>');
+  BlockQuoteMatcher()
+      : super(
+          regex: blockQuoteRegex,
+          groupNames: ['blockQuoteArrow', 'blockQuoteContent'],
+        );
 
   @override
   BlockQuoteMatch mapMatch(RegExpMatch match) {
@@ -98,8 +99,6 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
           text: match.opening.text,
           style: const TextStyle(color: Colors.grey),
         ),
-        TextSpan(
-          text: match.content.text,
-        ),
+        ...recurMatch(context, match.content.text),
       ];
 }

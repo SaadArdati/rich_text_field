@@ -197,27 +197,21 @@ abstract class RichMatcher<T extends RichMatch> {
   /// The [RegExp] to match any given text.
   final RegExp regex;
 
+  /// The group names that the [regex] collects in encapsulating group matchers.
+  /// The [regex] *must* contain a named group.
+  final List<String> groupNames;
+
   /// Creates a new [RichMatcher] instance given a [regex], [inlineStyleBuilder],
   /// and [mapMatch].
   const RichMatcher({
     required this.regex,
+    required this.groupNames,
   });
 
   /// Whether this matcher allows recursive matches. If true, then the matcher
   /// will be run on the resulting matches of this matcher. If false, then the
   /// matcher will stop formatting at itself.
   bool allowRecursiveMatches() => true;
-
-  /// Given an arbitrarily [match]ed string, usages of this function ask this
-  /// matcher whether the match can be claimed by this matcher. In other words,
-  /// if the match can be formatted by this matcher.
-  ///
-  /// This is in contrast to regex-based matchers in that instead of returning a
-  /// match from the [regex], this function is used by a splitMap operation that
-  /// holds a large mixture of multiple regexes to identify which regex/matcher
-  /// the match result came from instead of looping through every matcher to
-  /// find the correct one, which can be horribly inefficient.
-  bool canClaimMatch(String match);
 
   /// The [MatchBuilder] to convert the resulting [RegExpMatch] to a specific
   /// type of [RichMatch] if necessary for richer match data-parsing that gets

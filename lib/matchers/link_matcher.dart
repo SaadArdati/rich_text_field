@@ -1,52 +1,68 @@
-import 'dart:math';
-
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
 
-class LinkMatch extends StartMatch {
+class LinkMatch extends RichMatch {
+  final bool isImage;
+  final TextEditingValue linkText;
+  final TextEditingValue linkURL;
+  final TextEditingValue linkTitle;
+
   LinkMatch(
     super.match, {
-    required super.opening,
-    required super.content,
+    required this.isImage,
+    required this.linkText,
+    required this.linkURL,
+    required this.linkTitle,
   });
 }
 
 class LinkMatcher extends RichMatcher<LinkMatch> {
-  LinkMatcher() : super(regex: numberLineRegex);
-
-  @override
-  bool canClaimMatch(String match) {
-    if (!match.contains('.')) return false;
-
-    final trimmed = match.trim().split('.')[0];
-    return double.tryParse(trimmed) != null;
-  }
+  LinkMatcher()
+      : super(
+          regex: linkRegex,
+          groupNames: ['linkText', 'linkURL', 'linkTitle'],
+        );
 
   @override
   LinkMatch mapMatch(RegExpMatch match) {
-    final opening = match.namedGroup('numberLineNumber')!;
-    final contentString = match.namedGroup('numberLineContent')!;
+    final String raw = match.group(0)!;
+    final bool isImage = raw.startsWith('!');
+    final String linkText = match.namedGroup('linkText')!;
+    final String linkURL = match.namedGroup('linkURL')!;
+    final String linkTitle = match.namedGroup('linkTitle')!;
 
-    final TextEditingValue openingVal = TextEditingValue(
-      text: opening,
-      selection: TextSelection(
-        baseOffset: match.start,
-        extentOffset: match.start + opening.length,
-      ),
+    final TextEditingValue linkTextVal = TextEditingValue(
+      text: linkText,
+      selection: findSelection(raw, linkText),
     );
-    final TextEditingValue contentVal = TextEditingValue(
-      text: contentString,
-      selection: TextSelection(
-        baseOffset: match.start + opening.length + 1,
-        extentOffset: match.end - 1,
-      ),
+    final TextEditingValue linkURLVal = TextEditingValue(
+      text: linkURL,
+      selection: findSelection(raw, linkURL),
     );
+    final TextEditingValue linkTitleVal = TextEditingValue(
+      text: linkTitle,
+      selection: findSelection(raw, linkTitle),
+    );
+
     return LinkMatch(
       match,
-      opening: openingVal,
-      content: contentVal,
+      isImage: isImage,
+      linkText: linkTextVal,
+      linkURL: linkURLVal,
+      linkTitle: linkTitleVal,
+    );
+  }
+
+  TextSelection findSelection(String text, String match) {
+    final int start = text.indexOf(match);
+    final int end = start + match.length;
+    return TextSelection(
+      baseOffset: start,
+      extentOffset: end,
     );
   }
 
@@ -56,32 +72,46 @@ class LinkMatcher extends RichMatcher<LinkMatch> {
     LinkMatch match,
     RecurMatchBuilder recurMatch,
   ) {
-    final blockNestingCount = max(
-      0,
-      match.opening.text.length - match.opening.text.trimLeft().length,
-    );
-
-    return [
-      WidgetSpan(
-        child: Row(
-          children: [
-            Container(
-                margin: EdgeInsets.only(left: blockNestingCount * 4 + 16, right: 4),
-                child: SelectionContainer.disabled(
-                  child: Text(
-                    match.opening.text.trim(),
-                    style: const TextStyle(color: Colors.grey),
+    if (match.isImage) {
+      return [
+        WidgetSpan(
+          child: Image.network(
+            match.linkURL.text,
+            semanticLabel: match.linkTitle.text,
+            errorBuilder: (
+              context,
+              error,
+              stackTrace,
+            ) {
+              return Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.error,
+                    width: 2,
                   ),
-                )),
-            Text.rich(
-              TextSpan(
-                children: recurMatch(context, match.content.text),
-              ),
-            ),
-          ],
+                ),
+                child: Icon(
+                  Icons.error_outline,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              );
+            },
+          ),
         ),
-      ),
-    ];
+      ];
+    } else {
+      return [
+        TextSpan(
+          text: match.linkText.text,
+          style: const TextStyle(color: Colors.blue),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () => launchUrlString(match.linkURL.text),
+          semanticsLabel: match.linkTitle.text,
+        ),
+      ];
+    }
   }
 
   @override
@@ -91,12 +121,34 @@ class LinkMatcher extends RichMatcher<LinkMatch> {
     RecurMatchBuilder recurMatch,
   ) =>
       [
-        TextSpan(
-          text: match.opening.text,
-          style: const TextStyle(color: Colors.grey),
+        const TextSpan(
+          text: '[',
+          style: TextStyle(color: Colors.grey),
         ),
         TextSpan(
-          text: match.content.text,
+          text: match.linkText.text,
+          style: const TextStyle(color: Colors.grey),
+        ),
+        const TextSpan(
+          text: ']',
+          style: TextStyle(color: Colors.grey),
+        ),
+        const TextSpan(
+          text: '(',
+          style: TextStyle(color: Colors.green),
+        ),
+        TextSpan(
+          text: match.linkURL.text,
+          style: const TextStyle(color: Colors.blue),
+        ),
+        TextSpan(
+          text:
+              match.linkTitle.text.isEmpty ? '' : ' "${match.linkTitle.text}"',
+          style: const TextStyle(color: Colors.yellow),
+        ),
+        const TextSpan(
+          text: ')',
+          style: TextStyle(color: Colors.green),
         ),
       ];
 }

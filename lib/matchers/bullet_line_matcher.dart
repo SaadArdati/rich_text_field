@@ -12,15 +12,11 @@ class BulletLineMatch extends StartMatch {
 }
 
 class BulletLineMatcher extends RichMatcher<BulletLineMatch> {
-  BulletLineMatcher() : super(regex: bulletLineRegex);
-
-  @override
-  bool canClaimMatch(String match) {
-    final trimmed = match.trim();
-    return trimmed.startsWith('*') ||
-        trimmed.startsWith('-') ||
-        trimmed.startsWith('+');
-  }
+  BulletLineMatcher()
+      : super(
+          regex: bulletLineRegex,
+          groupNames: ['bulletLineBullet', 'bulletLineContent'],
+        );
 
   @override
   BulletLineMatch mapMatch(RegExpMatch match) {
@@ -61,9 +57,10 @@ class BulletLineMatcher extends RichMatcher<BulletLineMatch> {
         child: Row(
           children: [
             Container(
-              width: 6,
-              height: 6,
-              margin: EdgeInsets.only(left: blockNestingCount * 8, right: 4),
+              width: 5.5,
+              height: 5.5,
+              margin:
+                  EdgeInsets.only(left: blockNestingCount * 8 + 8, right: 8),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.grey,
