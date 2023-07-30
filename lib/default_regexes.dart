@@ -1,5 +1,5 @@
 const String bold =
-    r'''(?<boldOpening>\*{2}|_{2})(?<boldContent>[^*_\n]+)(?<boldClosing>\*{2}|_{2})''';
+    r'''(?<boldOpening>\*{2}|_{2})(?<boldContent>[^\n]+)(?<boldClosing>\*{2}|_{2})''';
 const String italic =
     r'''(?<italicsOpening>\*|_)(?<italicsContent>[^*_\n]+)(?<italicsClosing>\*|_)''';
 const String strikeThrough =
