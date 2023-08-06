@@ -34,11 +34,15 @@ class SuperscriptMatcher extends RichMatcher<SuperscriptMatch> {
         );
 
   @override
-  SuperscriptMatch mapMatch(RegExpMatch match) =>
+  SuperscriptMatch mapMatch(
+    RegExpMatch match, {
+    required int selectionOffset,
+  }) =>
       defaultEncapsulatedMatchBuilder(
         match,
         groupNames,
         SuperscriptMatch.from,
+        selectionOffset: selectionOffset,
       );
 
   @override
@@ -52,7 +56,7 @@ class SuperscriptMatcher extends RichMatcher<SuperscriptMatch> {
           style: const TextStyle(
             fontFeatures: [ui.FontFeature.superscripts()],
           ),
-          children: recurMatch(context, match.content.text),
+          children: recurMatch(context, match.content),
         )
       ];
 
@@ -71,7 +75,7 @@ class SuperscriptMatcher extends RichMatcher<SuperscriptMatch> {
         style: const TextStyle(
           fontFeatures: [ui.FontFeature.superscripts()],
         ),
-        children: recurMatch(context, match.content.text),
+        children: recurMatch(context, match.content),
       ),
       TextSpan(
         text: match.closing.text,

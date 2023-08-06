@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
 class NumberedLineMatch extends StartMatch {
   NumberedLineMatch(
@@ -21,7 +22,9 @@ class NumberedLineMatcher extends RichMatcher<NumberedLineMatch> {
         );
 
   @override
-  NumberedLineMatch mapMatch(RegExpMatch match) {
+  NumberedLineMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final opening = match.namedGroup('numberLineNumber')!;
     final contentString = match.namedGroup('numberLineContent')!;
 
@@ -30,14 +33,14 @@ class NumberedLineMatcher extends RichMatcher<NumberedLineMatch> {
       selection: TextSelection(
         baseOffset: match.start,
         extentOffset: match.start + opening.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue contentVal = TextEditingValue(
       text: contentString,
       selection: TextSelection(
         baseOffset: match.start + opening.length + 1,
         extentOffset: match.end - 1,
-      ),
+      ).shift(selectionOffset),
     );
     return NumberedLineMatch(
       match,
@@ -72,7 +75,7 @@ class NumberedLineMatcher extends RichMatcher<NumberedLineMatch> {
                 )),
             Text.rich(
               TextSpan(
-                children: recurMatch(context, match.content.text),
+                children: recurMatch(context, match.content),
               ),
             ),
           ],

@@ -28,10 +28,13 @@ class ItalicMatcher extends RichMatcher<ItalicMatch> {
         );
 
   @override
-  ItalicMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
+  ItalicMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) => defaultEncapsulatedMatchBuilder(
         match,
         groupNames,
         ItalicMatch.from,
+        selectionOffset: selectionOffset,
       );
 
   @override
@@ -43,7 +46,7 @@ class ItalicMatcher extends RichMatcher<ItalicMatch> {
       [
         TextSpan(
           style: const TextStyle(fontStyle: FontStyle.italic),
-          children: recurMatch(context, match.content.text),
+          children: recurMatch(context, match.content),
         )
       ];
 
@@ -60,7 +63,7 @@ class ItalicMatcher extends RichMatcher<ItalicMatch> {
         ),
         TextSpan(
           style: const TextStyle(fontStyle: FontStyle.italic),
-          children: recurMatch(context, match.content.text),
+          children: recurMatch(context, match.content),
         ),
         TextSpan(
           text: match.closing.text,

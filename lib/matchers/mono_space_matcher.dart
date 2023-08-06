@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
 class MonoSpaceMatch extends EncapsulatedMatch {
   MonoSpaceMatch(
@@ -25,7 +26,9 @@ class MonoSpaceMatcher extends RichMatcher<MonoSpaceMatch> {
         );
 
   @override
-  MonoSpaceMatch mapMatch(RegExpMatch match) {
+  MonoSpaceMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final startQuote = match.namedGroup('monoSpaceOpening')!;
     final contentString = match.namedGroup('monoSpaceContent')!;
     final endQuote = match.namedGroup('monoSpaceClosing')!;
@@ -35,21 +38,21 @@ class MonoSpaceMatcher extends RichMatcher<MonoSpaceMatch> {
       selection: TextSelection(
         baseOffset: match.start,
         extentOffset: match.start + startQuote.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue contentVal = TextEditingValue(
       text: contentString,
       selection: TextSelection(
         baseOffset: match.start + startQuote.length,
         extentOffset: match.end - endQuote.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue endQuoteVal = TextEditingValue(
       text: endQuote,
       selection: TextSelection(
         baseOffset: match.end - endQuote.length,
         extentOffset: match.end,
-      ),
+      ).shift(selectionOffset),
     );
     return MonoSpaceMatch(
       match,

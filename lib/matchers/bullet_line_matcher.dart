@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
 class BulletLineMatch extends StartMatch {
   BulletLineMatch(
@@ -19,7 +20,9 @@ class BulletLineMatcher extends RichMatcher<BulletLineMatch> {
         );
 
   @override
-  BulletLineMatch mapMatch(RegExpMatch match) {
+  BulletLineMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final opening = match.namedGroup('bulletLineBullet')!;
     final contentString = match.namedGroup('bulletLineContent')!;
 
@@ -28,14 +31,14 @@ class BulletLineMatcher extends RichMatcher<BulletLineMatch> {
       selection: TextSelection(
         baseOffset: match.start,
         extentOffset: match.start + opening.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue contentVal = TextEditingValue(
       text: contentString,
       selection: TextSelection(
         baseOffset: match.start + opening.length + 1,
         extentOffset: match.end - 1,
-      ),
+      ).shift(selectionOffset),
     );
     return BulletLineMatch(
       match,
@@ -68,7 +71,7 @@ class BulletLineMatcher extends RichMatcher<BulletLineMatch> {
             ),
             Text.rich(
               TextSpan(
-                children: recurMatch(context, match.content.text),
+                children: recurMatch(context, match.content),
               ),
             ),
           ],
@@ -89,7 +92,7 @@ class BulletLineMatcher extends RichMatcher<BulletLineMatch> {
           style: const TextStyle(color: Colors.grey),
         ),
         TextSpan(
-          text: match.content.text,
+          children: recurMatch(context, match.content),
         ),
       ];
 }

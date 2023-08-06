@@ -3,6 +3,9 @@ import 'package:screwdriver/screwdriver.dart';
 
 import 'matchers/matchers.dart';
 import 'matching.dart';
+import 'utils.dart';
+
+typedef SelectionChangedEvent = void Function(TextSelection newSelection);
 
 bool _defaultShouldDebounceFormatting(String text) => text.length > 1000;
 
@@ -14,7 +17,7 @@ class RichTextEditingController extends TextEditingController {
 
   // final bool Function(String text) shouldDebounceFormatting;
 
-  final Map<RichMatcher, List<RichMatch>> matches = {};
+  final Map<RichMatcher, Set<RichMatch>> matches = {};
 
   // final DeBouncer _debouncer = DeBouncer(Duration(milliseconds: 300));
 
@@ -22,11 +25,18 @@ class RichTextEditingController extends TextEditingController {
   TextStyle _style = const TextStyle();
   TextSpan? _span;
 
+  ValueNotifier<TextSelection?> selectionNotifier =
+      ValueNotifier<TextSelection?>(null);
   TextSelection? _lastSelection;
+
+  TextSelection? get lastSelection => _lastSelection;
+
+  final SelectionChangedEvent? onSelectionChanged;
 
   RichTextEditingController({
     super.text = '',
     List<RichMatcher>? matchers,
+    this.onSelectionChanged,
     // this.shouldDebounceFormatting = _defaultShouldDebounceFormatting,
   }) : matchers = matchers ??
             [
@@ -47,6 +57,12 @@ class RichTextEditingController extends TextEditingController {
             ];
 
   @override
+  void dispose() {
+    selectionNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
   set value(TextEditingValue newValue) {
     // if (shouldDebounceFormatting(newValue.text)) {
     //   if (_lastText != newValue.text) {
@@ -65,9 +81,13 @@ class RichTextEditingController extends TextEditingController {
 
   @override
   set selection(TextSelection newSelection) {
+    selectionNotifier.value = newSelection;
+
     _lastSelection = selection;
 
     super.selection = newSelection;
+
+    onSelectionChanged?.call(newSelection);
   }
 
   void restoreLastSelection() {
@@ -76,15 +96,15 @@ class RichTextEditingController extends TextEditingController {
     }
   }
 
-  TextSpan getBetterFormattedText(
+  TextSpan buildRichFormattedSpan(
     BuildContext context, {
     required String text,
     required TextStyle style,
     bool rasterized = false,
   }) {
+    matches.clear();
+
     if (matchers.isEmpty) {
-      // don't proceed further if no highlighters are provided.
-      onAllMatchesFound({});
       return TextSpan(text: text, style: style);
     }
 
@@ -92,14 +112,22 @@ class RichTextEditingController extends TextEditingController {
         matchers.map((matcher) => matcher.regex.pattern).join('|');
     final RegExp regex = RegExp(pattern, multiLine: true);
 
-    return matchText(context, text, regex, rasterized: rasterized);
+    return TextSpan(
+      children: _recursivelyBuildSpans(
+        context,
+        text,
+        regex,
+        rasterized: rasterized,
+      ),
+    );
   }
 
-  TextSpan matchText(
+  List<InlineSpan> _recursivelyBuildSpans(
     BuildContext context,
     String text,
     RegExp regex, {
     required bool rasterized,
+    int selectionOffset = 0,
   }) {
     final List<InlineSpan> spans = text.splitMap<InlineSpan>(
       regex,
@@ -114,7 +142,10 @@ class RichTextEditingController extends TextEditingController {
           return false;
         });
 
-        final RichMatch richMatch = matcher.mapMatch(match);
+        final RichMatch richMatch = matcher.mapMatch(
+          match,
+          selectionOffset: selectionOffset,
+        );
 
         return TextSpan(
           children: onMatch(
@@ -122,9 +153,13 @@ class RichTextEditingController extends TextEditingController {
             matcher: matcher,
             match: richMatch,
             rasterized: rasterized,
-            recurMatch: (context, text) => [
-              matchText(context, text, regex, rasterized: rasterized),
-            ],
+            recurMatch: (context, value) => _recursivelyBuildSpans(
+              context,
+              value.text,
+              regex,
+              rasterized: rasterized,
+              selectionOffset: value.start,
+            ),
           ),
         );
       },
@@ -132,26 +167,8 @@ class RichTextEditingController extends TextEditingController {
         return TextSpan(text: nonMatch);
       },
     );
-    return TextSpan(children: spans);
-  }
 
-  TextSpan _format(
-    BuildContext context, {
-    TextStyle? style,
-    bool rasterized = false,
-  }) {
-    if (matchers.isEmpty) {
-      // don't proceed further if no highlighters are provided.
-      onAllMatchesFound({});
-      return TextSpan(text: text, style: style);
-    }
-
-    return getBetterFormattedText(
-      context,
-      text: text,
-      style: style ?? const TextStyle(),
-      rasterized: rasterized,
-    );
+    return spans;
   }
 
   @override
@@ -161,7 +178,12 @@ class RichTextEditingController extends TextEditingController {
     required bool withComposing,
   }) {
     // if (!shouldDebounceFormatting(text)) {
-    return _format(context, style: style);
+    return buildRichFormattedSpan(
+      context,
+      text: text,
+      style: style ?? const TextStyle(),
+      rasterized: false,
+    );
     // }
 
     // if (style != _style) {
@@ -187,21 +209,14 @@ class RichTextEditingController extends TextEditingController {
     required T match,
     required RecurMatchBuilder recurMatch,
     bool rasterized = false,
-  }) =>
-      rasterized
-          ? matcher.styleBuilder(context, match, recurMatch)
-          : matcher.inlineStyleBuilder(context, match, recurMatch);
+  }) {
+    matches.putIfAbsent(matcher, () => {}).add(match);
+    return rasterized
+        ? matcher.styleBuilder(context, match, recurMatch)
+        : matcher.inlineStyleBuilder(context, match, recurMatch);
+  }
 
   /// Called for parts of [text] that does not match with any regexes.
   RichSpan onNonMatch(String span, TextSelection selection, TextStyle style) =>
       RichSpan(matcher: null, selection: selection, text: span, style: style);
-
-  /// Called when all regex matching is done and all the matches have
-  /// been collected.
-  /// This can be used to collect and manage all matching texts.
-  void onAllMatchesFound(Map<RichMatcher, List<RichMatch>> matches) {
-    this.matches
-      ..clear()
-      ..addAll(matches);
-  }
 }

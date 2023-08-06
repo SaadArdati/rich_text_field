@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
 class LinkMatch extends RichMatch {
   final bool isImage;
@@ -17,7 +18,12 @@ class LinkMatch extends RichMatch {
     required this.linkText,
     required this.linkURL,
     required this.linkTitle,
-  });
+  }) : super(
+          completeSelection: TextSelection(
+            baseOffset: match.start,
+            extentOffset: match.end,
+          ),
+        );
 }
 
 class LinkMatcher extends RichMatcher<LinkMatch> {
@@ -28,7 +34,10 @@ class LinkMatcher extends RichMatcher<LinkMatch> {
         );
 
   @override
-  LinkMatch mapMatch(RegExpMatch match) {
+  LinkMatch mapMatch(
+    RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final String raw = match.group(0)!;
     final bool isImage = raw.startsWith('!');
     final String linkText = match.namedGroup('linkText')!;
@@ -37,15 +46,15 @@ class LinkMatcher extends RichMatcher<LinkMatch> {
 
     final TextEditingValue linkTextVal = TextEditingValue(
       text: linkText,
-      selection: findSelection(raw, linkText),
+      selection: findSelection(raw, linkText).shift(selectionOffset),
     );
     final TextEditingValue linkURLVal = TextEditingValue(
       text: linkURL,
-      selection: findSelection(raw, linkURL),
+      selection: findSelection(raw, linkURL).shift(selectionOffset),
     );
     final TextEditingValue linkTitleVal = TextEditingValue(
       text: linkTitle,
-      selection: findSelection(raw, linkTitle),
+      selection: findSelection(raw, linkTitle).shift(selectionOffset),
     );
 
     return LinkMatch(

@@ -32,11 +32,14 @@ class StrikeThroughMatcher extends RichMatcher<StrikeThroughMatch> {
         );
 
   @override
-  StrikeThroughMatch mapMatch(RegExpMatch match) =>
+  StrikeThroughMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) =>
       defaultEncapsulatedMatchBuilder(
         match,
         groupNames,
         StrikeThroughMatch.from,
+        selectionOffset: selectionOffset,
       );
 
   @override

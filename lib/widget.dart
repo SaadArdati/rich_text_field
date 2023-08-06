@@ -81,10 +81,10 @@ class RichTextField extends TextField {
   }
 
   @override
-  State<RichTextField> createState() => _RichTextFieldState();
+  State<RichTextField> createState() => RichTextFieldState();
 }
 
-class _RichTextFieldState extends State<RichTextField> {
+class RichTextFieldState extends State<RichTextField> {
   late RichTextEditingController controller = widget.controller == null
       ? RichTextEditingController()
       : (widget.controller as RichTextEditingController);
@@ -123,8 +123,7 @@ class _RichTextFieldState extends State<RichTextField> {
     super.dispose();
   }
 
-  void onFocusChanged() {
-  }
+  void onFocusChanged() {}
 
   @override
   Widget build(BuildContext context) {

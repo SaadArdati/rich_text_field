@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
-class HeadingMatch extends RichMatch {
+class HeadingMatch extends StartMatch {
   final TextEditingValue hashtags;
-  final TextEditingValue content;
 
   HeadingMatch(
     super.match, {
     required this.hashtags,
-    required this.content,
-  });
+    required super.content,
+  }) : super(opening: hashtags);
 }
 
 class HeadingMatcher extends RichMatcher<HeadingMatch> {
@@ -24,21 +24,26 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
         );
 
   @override
-  HeadingMatch mapMatch(RegExpMatch match) {
+  HeadingMatch mapMatch(
+    RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final hashtagsString = match.namedGroup('headingHashtags')!;
     final contentString = match.namedGroup('headingContent')!;
 
     final TextEditingValue hashtags = TextEditingValue(
       text: hashtagsString,
-      selection: TextSelection.collapsed(
-        offset: match.start,
-      ),
+      selection: TextSelection(
+        baseOffset: match.start,
+        extentOffset: match.start + hashtagsString.length,
+      ).shift(selectionOffset),
     );
     final TextEditingValue content = TextEditingValue(
       text: contentString,
-      selection: TextSelection.collapsed(
-        offset: match.start + match.end - 2,
-      ),
+      selection: TextSelection(
+        baseOffset: match.start + hashtagsString.length,
+        extentOffset: match.end,
+      ).shift(selectionOffset),
     );
 
     return HeadingMatch(match, hashtags: hashtags, content: content);
@@ -58,7 +63,7 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
     return [
       TextSpan(
         style: TextStyle(fontSize: fontSize),
-        children: recurMatch(context, match.content.text.trimLeft()),
+        children: recurMatch(context, match.content),
       ),
     ];
   }
@@ -82,7 +87,7 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
       ),
       TextSpan(
         style: TextStyle(fontSize: fontSize),
-        children: recurMatch(context, match.content.text),
+        children: recurMatch(context, match.content),
       ),
     ];
   }

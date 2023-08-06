@@ -31,10 +31,15 @@ class EmojiMatcher extends RichMatcher<EmojiMatch> {
         );
 
   @override
-  EmojiMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
+  EmojiMatch mapMatch(
+    RegExpMatch match, {
+    required int selectionOffset,
+  }) =>
+      defaultEncapsulatedMatchBuilder(
         match,
         groupNames,
         EmojiMatch.from,
+        selectionOffset: selectionOffset,
       );
 
   @override
@@ -62,11 +67,11 @@ class EmojiMatcher extends RichMatcher<EmojiMatch> {
           style: const TextStyle(color: Colors.grey),
         ),
         TextSpan(
+          text: match.content.text,
           style: const TextStyle(
             fontStyle: FontStyle.italic,
             color: Colors.yellow,
           ),
-          children: recurMatch(context, match.content.text),
         ),
         TextSpan(
           text: match.closing.text,

@@ -34,10 +34,13 @@ class SubscriptMatcher extends RichMatcher<SubscriptMatch> {
         );
 
   @override
-  SubscriptMatch mapMatch(RegExpMatch match) => defaultEncapsulatedMatchBuilder(
+  SubscriptMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) => defaultEncapsulatedMatchBuilder(
         match,
         groupNames,
         SubscriptMatch.from,
+        selectionOffset: selectionOffset,
       );
 
   @override
@@ -51,7 +54,7 @@ class SubscriptMatcher extends RichMatcher<SubscriptMatch> {
           style: const TextStyle(
             fontFeatures: [ui.FontFeature.subscripts()],
           ),
-          children: recurMatch(context, match.content.text),
+          children: recurMatch(context, match.content),
         )
       ];
 
@@ -70,7 +73,7 @@ class SubscriptMatcher extends RichMatcher<SubscriptMatch> {
         style: const TextStyle(
           fontFeatures: [ui.FontFeature.subscripts()],
         ),
-        children: recurMatch(context, match.content.text),
+        children: recurMatch(context, match.content),
       ),
       TextSpan(
         text: match.closing.text,

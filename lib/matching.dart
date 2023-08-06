@@ -1,4 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+
+import 'rich_text_controller.dart';
+import 'utils.dart';
 
 class RichSpan {
   final RichMatcher? matcher;
@@ -36,26 +40,25 @@ class RichSpan {
 /// differentiation is necessary.
 ///
 /// If the match type is not important, then this class can be used directly.
-class RichMatch {
+class RichMatch with EquatableMixin {
   /// The [RegExpMatch] that this class wraps.
   final RegExpMatch match;
 
-  /// [returns] the [TextSelection] of the [match] that
-  /// this class wraps.
-  late final TextSelection selection = TextSelection(
-    baseOffset: match.start,
-    extentOffset: match.end,
-  );
+  /// The entire selection of this match, relative to the entire text.
+  final TextSelection completeSelection;
 
   /// A helper getter that returns the full text of the match from the
   /// [match] that this class wraps.
   String get fullText => match.group(0)!;
 
   /// Creates a new [RichMatch] instance given a [match].
-  RichMatch(this.match);
+  RichMatch(this.match, {required this.completeSelection});
 
   @override
   String toString() => "RichMatch(match: $fullText)";
+
+  @override
+  List<Object?> get props => [match.start, match.end, fullText];
 }
 
 /// A default implementation of a match that was made using an opening and
@@ -70,7 +73,12 @@ class EncapsulatedMatch extends RichMatch {
     required this.opening,
     required this.closing,
     required this.content,
-  });
+  }) : super(
+          completeSelection: TextSelection(
+            baseOffset: opening.selection.start,
+            extentOffset: closing.selection.end,
+          ),
+        );
 }
 
 /// A default implementation of a match that was made using an opening text
@@ -83,7 +91,12 @@ class StartMatch extends RichMatch {
     super.match, {
     required this.opening,
     required this.content,
-  });
+  }) : super(
+          completeSelection: TextSelection(
+            baseOffset: opening.selection.start,
+            extentOffset: content.selection.end,
+          ),
+        );
 }
 
 /// A typedef that allows conversion of a given [match] to any specific
@@ -92,8 +105,15 @@ typedef MatchBuilder<T extends RichMatch> = T Function(RegExpMatch match);
 
 /// A default match builder that simply returns a [RichMatch] instance given
 /// a [match]. No subtyping is done.
-T defaultMatchBuilder<T extends RichMatch>(RegExpMatch match) =>
-    RichMatch(match) as T;
+T defaultMatchBuilder<T extends RichMatch>(
+        RegExpMatch match, int selectionOffset) =>
+    RichMatch(
+      match,
+      completeSelection: TextSelection(
+        baseOffset: match.start,
+        extentOffset: match.end,
+      ).shift(selectionOffset),
+    ) as T;
 
 typedef EncapsulatedMatchTypeConverter<T extends RichMatch> = T Function(
     EncapsulatedMatch match);
@@ -101,33 +121,36 @@ typedef EncapsulatedMatchTypeConverter<T extends RichMatch> = T Function(
 T defaultEncapsulatedMatchBuilder<T extends EncapsulatedMatch>(
   RegExpMatch match,
   List<String> groupNames,
-  EncapsulatedMatchTypeConverter<T> converter,
-) {
+  EncapsulatedMatchTypeConverter<T> converter, {
+  required int selectionOffset,
+}) {
   assert(groupNames.length == 3);
   final openingChar = match.namedGroup(groupNames[0])!;
   final contentString = match.namedGroup(groupNames[1])!;
   final closingChar = match.namedGroup(groupNames[2])!;
+
+  // print('selectionOffset: $selectionOffset');
 
   final opening = TextEditingValue(
     text: openingChar,
     selection: TextSelection(
       baseOffset: match.start,
       extentOffset: match.start + 1,
-    ),
+    ).shift(selectionOffset),
   );
   final content = TextEditingValue(
     text: contentString,
     selection: TextSelection(
       baseOffset: match.start + 1,
       extentOffset: match.end - 1,
-    ),
+    ).shift(selectionOffset),
   );
   final closing = TextEditingValue(
     text: closingChar,
     selection: TextSelection(
       baseOffset: match.end - 1,
       extentOffset: match.end,
-    ),
+    ).shift(selectionOffset),
   );
 
   final encapsulatedMatch = EncapsulatedMatch(
@@ -137,12 +160,15 @@ T defaultEncapsulatedMatchBuilder<T extends EncapsulatedMatch>(
     content: content,
   );
 
+  // selection offset should be: 23
+  // 34 -> 42
+  // 36 -> 40
   return converter.call(encapsulatedMatch);
 }
 
 typedef RecurMatchBuilder = List<InlineSpan> Function(
   BuildContext context,
-  String text,
+  TextEditingValue value,
 );
 
 /// A class that wraps a [StyleBuilder] function to convert a given [RichMatch]
@@ -216,7 +242,11 @@ abstract class RichMatcher<T extends RichMatch> {
   /// The [MatchBuilder] to convert the resulting [RegExpMatch] to a specific
   /// type of [RichMatch] if necessary for richer match data-parsing that gets
   /// passed to [inlineStyleBuilder].
-  T mapMatch(RegExpMatch match) => defaultMatchBuilder(match);
+  T mapMatch(
+    RegExpMatch match, {
+    required int selectionOffset,
+  }) =>
+      defaultMatchBuilder(match, selectionOffset);
 
   /// The [StyleBuilder] to convert the resulting [RichMatch] to a list of
   /// [TextSpan]s to format the match.
@@ -234,4 +264,14 @@ abstract class RichMatcher<T extends RichMatch> {
     T match,
     RecurMatchBuilder recurMatch,
   );
+
+  void applyFormatting(RichTextEditingController controller) {}
+
+  Widget? contextMenuButton(
+    BuildContext context,
+    RichTextEditingController controller,
+  ) =>
+      null;
+
+  Widget? toolbarButton(BuildContext context, VoidCallback onPressed) => null;
 }

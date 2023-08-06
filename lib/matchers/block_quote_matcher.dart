@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
 class BlockQuoteMatch extends StartMatch {
   BlockQuoteMatch(
@@ -19,7 +20,10 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
         );
 
   @override
-  BlockQuoteMatch mapMatch(RegExpMatch match) {
+  BlockQuoteMatch mapMatch(
+    RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final opening = match.namedGroup('blockQuoteArrow')!;
     final contentString = match.namedGroup('blockQuoteContent')!;
 
@@ -28,14 +32,14 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
       selection: TextSelection(
         baseOffset: match.start,
         extentOffset: match.start + opening.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue contentVal = TextEditingValue(
       text: contentString,
       selection: TextSelection(
         baseOffset: match.start + opening.length + 1,
         extentOffset: match.end - 1,
-      ),
+      ).shift(selectionOffset),
     );
     return BlockQuoteMatch(
       match,
@@ -78,7 +82,7 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
               ),
               child: Text.rich(
                 TextSpan(
-                  children: recurMatch(context, match.content.text),
+                  children: recurMatch(context, match.content),
                 ),
               ),
             ),
@@ -99,6 +103,6 @@ class BlockQuoteMatcher extends RichMatcher<BlockQuoteMatch> {
           text: match.opening.text,
           style: const TextStyle(color: Colors.grey),
         ),
-        ...recurMatch(context, match.content.text),
+        ...recurMatch(context, match.content),
       ];
 }

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../default_regexes.dart';
 import '../matching.dart';
+import '../utils.dart';
 
 class CodeBlockMatch extends EncapsulatedMatch {
   final TextEditingValue? language;
@@ -29,7 +30,9 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
         );
 
   @override
-  CodeBlockMatch mapMatch(RegExpMatch match) {
+  CodeBlockMatch mapMatch(RegExpMatch match, {
+    required int selectionOffset,
+  }) {
     final startQuote = match.namedGroup('codeBlockOpening')!;
     final language = match.namedGroup('codeBlockLanguage')?.trim() ?? '';
     final contentString = match.namedGroup('codeBlockContent')!;
@@ -40,28 +43,28 @@ class CodeBlockMatcher extends RichMatcher<CodeBlockMatch> {
       selection: TextSelection(
         baseOffset: match.start,
         extentOffset: match.start + startQuote.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue languageVal = TextEditingValue(
       text: language,
       selection: TextSelection(
         baseOffset: match.start + startQuote.length,
         extentOffset: match.start + startQuote.length + language.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue contentVal = TextEditingValue(
       text: contentString,
       selection: TextSelection(
         baseOffset: match.start + startQuote.length + language.length,
         extentOffset: match.end - endQuote.length,
-      ),
+      ).shift(selectionOffset),
     );
     final TextEditingValue endQuoteVal = TextEditingValue(
       text: endQuote,
       selection: TextSelection(
         baseOffset: match.end - endQuote.length,
         extentOffset: match.end,
-      ),
+      ).shift(selectionOffset),
     );
     return CodeBlockMatch(
       match,
