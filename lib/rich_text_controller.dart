@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:screwdriver/screwdriver.dart';
 
+import 'matchers/italic_bold_matcher.dart';
 import 'matchers/matchers.dart';
 import 'matching.dart';
 import 'utils.dart';
@@ -42,6 +43,7 @@ class RichTextEditingController extends TextEditingController {
             [
               BoldMatcher(),
               ItalicMatcher(),
+              ItalicBoldMatcher(),
               StrikeThroughMatcher(),
               HeadingMatcher(),
               BlockQuoteMatcher(),

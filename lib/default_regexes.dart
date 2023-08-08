@@ -1,7 +1,9 @@
 const String bold =
-    r'''(?<boldOpening>\*{2}|_{2})(?<boldContent>[^\n]+)(?<boldClosing>\*{2}|_{2})''';
+r'''(?<boldOpening>[*_]{2})(?<boldContent>[^*_\n]+)(?<boldClosing>[*_]{2})''';
 const String italic =
-    r'''(?<italicsOpening>\*|_)(?<italicsContent>[^*_\n]+)(?<italicsClosing>\*|_)''';
+    r'''(?<italicsOpening>[*_])(?<italicsContent>[^*_\n]+)(?<italicsClosing>[*_])''';
+const String italicBold =
+r'''(?<italicBoldOpening>[*_]{3,})(?<italicBoldContent>[^*_\n]+)(?<italicBoldClosing>[*_]{3,})''';
 const String strikeThrough =
     r'''(?<strikeThroughOpening>~~)(?<strikeThroughContent>[^~\n]+)(?<strikeThroughClosing>~~)''';
 const String subscript =
@@ -28,6 +30,7 @@ const String emoji =
 
 final RegExp boldRegex = RegExp(bold);
 final RegExp italicRegex = RegExp(italic);
+final RegExp italicBoldRegex = RegExp(italicBold);
 final RegExp strikeThroughRegex = RegExp(strikeThrough);
 final RegExp subscriptRegex = RegExp(subscript);
 final RegExp superscriptRegex = RegExp(superscript);

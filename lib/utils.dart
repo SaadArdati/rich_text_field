@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -92,10 +94,94 @@ extension TextSelectionHelper on TextSelection {
   bool containsSelection(TextSelection other) {
     return baseOffset <= other.baseOffset && extentOffset >= other.extentOffset;
   }
+
+  /// Gets the text selection that is not contained in [other]
+  TextSelection negative(TextSelection other) => TextSelection(
+        baseOffset: min(baseOffset, other.baseOffset),
+        extentOffset: max(extentOffset, other.extentOffset),
+      );
 }
 
 extension TextEditingValueHelper on TextEditingValue {
   int get start => selection.start;
 
   int get end => selection.end;
+}
+
+/// Detects any asymmetry with * or _ in one of the strings. returns a
+/// [TextSelection] that represents where the asymmetry is.
+///
+/// Example:
+/// ***test***  -> TextSelection.collapsed(offset: -1)
+/// *__test___ -> TextSelection(baseOffset: 9, extentOffset: 10)
+/// __*test*__*  -> TextSelection(baseOffset: 10, extentOffset: 11)
+/// *****test*** -> TextSelection(baseOffset: 0, extentOffset: 2)
+/// ***test***** -> TextSelection(baseOffset: 10, extentOffset: 12)
+///
+/// Processing starts from string center and outwards. So from the end of [a]
+/// to start of [a], and from start of [b] to end of [b].
+///
+/// Results are returned relative to [a] & [b]
+({
+  TextSelection symmA,
+  TextSelection symmB,
+  TextSelection asymA,
+  TextSelection asymB
+}) findAsymmetry(String a, String b) {
+  if (a == b) {
+    return (
+      symmA: TextSelection(baseOffset: 0, extentOffset: a.length),
+      symmB: TextSelection(baseOffset: 0, extentOffset: b.length),
+      asymA: const TextSelection.collapsed(offset: -1),
+      asymB: const TextSelection.collapsed(offset: -1),
+    );
+  }
+  final int shortestLength = min(a.length, b.length);
+
+  final List<String?> aList = [...a.characters];
+  final List<String?> bList = [...b.characters];
+
+  for (int i = 0; i <= shortestLength - 1; i++) {
+    final aIndex = a.length - 1 - i;
+    final bIndex = i;
+    final aChar = a.characters.characterAt(aIndex);
+    final bChar = b.characters.characterAt(bIndex);
+
+    if (aChar == bChar) {
+      aList[aIndex] = null;
+      bList[bIndex] = null;
+    } else {
+      break;
+    }
+  }
+
+  final int aLength = aList.whereNotNull().length;
+  final int bLength = bList.whereNotNull().length;
+
+  return (
+    symmA: aLength == 0
+        ? TextSelection(baseOffset: 0, extentOffset: a.length)
+        : TextSelection(
+            baseOffset: aLength,
+            extentOffset: a.length,
+          ),
+    asymA: aLength == 0
+        ? const TextSelection.collapsed(offset: -1)
+        : TextSelection(
+            baseOffset: 0,
+            extentOffset: aLength,
+          ),
+    symmB: bLength == 0
+        ? TextSelection(baseOffset: 0, extentOffset: b.length)
+        : TextSelection(
+            baseOffset: 0,
+            extentOffset: b.length - bLength,
+          ),
+    asymB: bLength == 0
+        ? const TextSelection.collapsed(offset: -1)
+        : TextSelection(
+            baseOffset: b.length - bLength,
+            extentOffset: b.length,
+          ),
+  );
 }

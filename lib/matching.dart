@@ -160,9 +160,6 @@ T defaultEncapsulatedMatchBuilder<T extends EncapsulatedMatch>(
     content: content,
   );
 
-  // selection offset should be: 23
-  // 34 -> 42
-  // 36 -> 40
   return converter.call(encapsulatedMatch);
 }
 

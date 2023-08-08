@@ -32,7 +32,6 @@ class RichFocusNode extends FocusNode {
       findEditableTextState(textFieldKey.currentContext!);
 
   void updateContextMenu() {
-    print('${controller.selection.start} -> ${controller.selection.end}');
     if (editableTextState == null || !editableTextState!.context.mounted) {
       return;
     }

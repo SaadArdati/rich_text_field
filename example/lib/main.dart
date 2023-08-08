@@ -42,9 +42,13 @@ class _MyHomePageState extends State<MyHomePage> {
   final RichTextEditingController richController = RichTextEditingController(
     text: '''Test test tessst
 
-##### test test test test, good test.
+##### test test **test** test, good test.
 
-more tests and testing tests''',
+more **tests** and **testing** **test**s
+
+*test* __test__ _test_
+
+***test******''',
     // text: markdownSample,
   );
   late final RichFocusNode richFocus = RichFocusNode(
@@ -309,6 +313,36 @@ more tests and testing tests''',
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class Example extends StatefulWidget {
+  const Example({super.key});
+
+  @override
+  State<Example> createState() => _ExampleState();
+}
+
+class _ExampleState extends State<Example> {
+  bool growMyBox = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: growMyBox ? 200 : 100,
+      color: Colors.yellow,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.red,
+        ),
+        onPressed: () {
+          setState(() {
+            growMyBox = true;
+          });
+        },
+        child: const Text('Button text'),
       ),
     );
   }
