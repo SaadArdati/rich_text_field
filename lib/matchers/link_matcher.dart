@@ -130,6 +130,11 @@ class LinkMatcher extends RichMatcher<LinkMatch> {
     RecurMatchBuilder recurMatch,
   ) =>
       [
+        if(match.isImage)
+        const TextSpan(
+          text: '!',
+          style: TextStyle(color: Colors.yellow),
+        ),
         const TextSpan(
           text: '[',
           style: TextStyle(color: Colors.grey),

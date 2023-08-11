@@ -40,16 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final DeBouncer deBouncer = DeBouncer(const Duration(milliseconds: 300));
   final GlobalKey richFieldKey = GlobalKey();
   final RichTextEditingController richController = RichTextEditingController(
-    text: '''Test test tessst
-
-##### test test **test** test, good test.
-
-more **tests** and **testing** **test**s
-
-*test* __test__ _test_
-
-***test******''',
-    // text: markdownSample,
+    text: markdownSample,
   );
   late final RichFocusNode richFocus = RichFocusNode(
     controller: richController,

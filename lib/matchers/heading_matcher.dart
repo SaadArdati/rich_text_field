@@ -29,7 +29,7 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
     required int selectionOffset,
   }) {
     final hashtagsString = match.namedGroup('headingHashtags')!;
-    final contentString = match.namedGroup('headingContent')!;
+    final contentString = match.namedGroup('headingContent')!.trim();
 
     final TextEditingValue hashtags = TextEditingValue(
       text: hashtagsString,
@@ -82,7 +82,7 @@ class HeadingMatcher extends RichMatcher<HeadingMatch> {
 
     return [
       TextSpan(
-        text: match.hashtags.text,
+        text: '${match.hashtags.text} ',
         style: const TextStyle(color: Colors.grey),
       ),
       TextSpan(
